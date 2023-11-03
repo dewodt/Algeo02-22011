@@ -140,46 +140,43 @@ const SearchForm = () => {
 
         <Separator />
 
-        {/* Upload datasets */}
-        <div>
-          {/* Image Dataset Input */}
-          <FormField
-            control={control}
-            name="image_dataset"
-            render={({ field: { onChange }, ...field }) => (
-              <FormItem>
-                <FormLabel>Image Dataset</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    placeholder="Upload Image Dataset"
-                    // @ts-expect-error
-                    webkitdirectory=""
-                    directory=""
-                    onChange={(e) => {
-                      onChange(e.target.files);
+        {/* Image Dataset Input */}
+        <FormField
+          control={control}
+          name="image_dataset"
+          render={({ field: { onChange }, ...field }) => (
+            <FormItem>
+              <FormLabel>Image Dataset</FormLabel>
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  placeholder="Upload Image Dataset"
+                  // @ts-expect-error
+                  webkitdirectory=""
+                  directory=""
+                  onChange={(e) => {
+                    onChange(e.target.files);
 
-                      // TO TEST PAGINATION
-                      const newImages = Array.from(e.target.files!).map(
-                        (image) => {
-                          return {
-                            image: image,
-                            similarity: Math.random(),
-                          };
-                        }
-                      );
+                    // TO TEST PAGINATION
+                    const newImages = Array.from(e.target.files!).map(
+                      (image) => {
+                        return {
+                          image: image,
+                          similarity: Math.random(),
+                        };
+                      }
+                    );
 
-                      setImageResults(newImages);
-                    }}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                    setImageResults(newImages);
+                  }}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   );
