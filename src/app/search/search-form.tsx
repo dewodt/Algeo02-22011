@@ -154,7 +154,9 @@ const SearchForm = () => {
                     type="file"
                     accept="image/*"
                     placeholder="Upload Image Dataset"
-                    multiple
+                    // @ts-expect-error
+                    webkitdirectory=""
+                    directory=""
                     onChange={(e) => {
                       onChange(e.target.files);
 
