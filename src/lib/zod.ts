@@ -3,7 +3,7 @@ import { allowedImagesTypes } from "./constants";
 
 export const SearchFormSchema = z.object({
   image_input: z
-    .custom<File>((input) => input instanceof File, "Please select input image")
+    .custom<File>((input) => input instanceof File, "Please select query image")
     .refine(
       (file) => allowedImagesTypes.includes(file!.type),
       "Only these types are allowed .jpg, .jpeg, and .png"

@@ -125,7 +125,7 @@ const SearchForm = () => {
         {imageResults.length > 0 && (
           <>
             <Separator orientation="horizontal" />
-            <div>
+            <div className="flex flex-col gap-4">
               {/* Results Title*/}
               <div className="sm:flex sm:flex-row sm:justify-between">
                 <h3 className="font-bold">Results:</h3>
