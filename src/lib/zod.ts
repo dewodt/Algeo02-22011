@@ -8,7 +8,7 @@ export const SearchFormSchema = z.object({
       (file) => allowedImagesTypes.includes(file!.type),
       "Only these types are allowed .jpg, .jpeg, and .png"
     ),
-  is_color: z.boolean(),
+  is_texture: z.boolean(),
   image_dataset: z
     .custom<FileList>(
       (input) => input instanceof FileList,

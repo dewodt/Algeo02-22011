@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
 import ImageResults from "./image-results";
+import { solveCBIRWithUploadDataSet } from "@/lib/cbir";
 
 // Search form & shows result client component
 const SearchForm = () => {
@@ -30,7 +31,7 @@ const SearchForm = () => {
   const form = useForm<z.infer<typeof SearchFormSchema>>({
     resolver: zodResolver(SearchFormSchema),
     defaultValues: {
-      is_color: false,
+      is_texture: false,
     },
   });
   const { control, handleSubmit, watch } = form;
@@ -41,10 +42,13 @@ const SearchForm = () => {
     : undefined;
 
   const onSubmit = async (data: z.infer<typeof SearchFormSchema>) => {
+    // Solve CBIR
     console.log(data);
-
-    // TO TEST PAGINATION
-    // setImageResults(Array.from(data.image_dataset));
+    solveCBIRWithUploadDataSet(
+      data.image_input,
+      data.is_texture,
+      data.image_dataset
+    );
   };
 
   return (
@@ -93,7 +97,7 @@ const SearchForm = () => {
               {/* Toggle Color vs Texture */}
               <FormField
                 control={control}
-                name="is_color"
+                name="is_texture"
                 render={({ field }) => (
                   <>
                     <FormLabel>Calculation Method</FormLabel>
