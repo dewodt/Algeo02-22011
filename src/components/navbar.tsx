@@ -59,8 +59,8 @@ const NavBar = ({
     <nav className="sticky left-0 right-0 top-0 z-40 flex h-20 w-full flex-row items-center justify-between border-b-2 border-b-border bg-background px-5 lg:px-16 xl:h-[90px]">
       {/* Logo Icon */}
       <Link href="/">
-        <div className="flex aspect-square h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-white">
-          L
+        <div className="flex aspect-square items-center justify-center rounded-full bg-primary p-2 font-bold leading-none text-white">
+          HBD
         </div>
       </Link>
 
