@@ -1,6 +1,11 @@
 // Pagination with 7 blocks
 
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Dispatch, type SetStateAction } from "react";
 
@@ -15,7 +20,18 @@ const Pagination = ({
 }) => {
   return (
     <div className="flex flex-row flex-wrap items-center justify-center gap-2">
-      {/* Previous */}
+      {/* Previous five */}
+      <Button
+        size="icon"
+        type="button"
+        variant="secondary"
+        disabled={page <= 5}
+        onClick={() => setPage(page - 5)}
+      >
+        <ChevronsLeft />
+      </Button>
+
+      {/* Previous One */}
       <Button
         size="icon"
         type="button"
@@ -63,7 +79,7 @@ const Pagination = ({
 
           {/* ... */}
           <Button variant="secondary" type="button" disabled>
-            <MoreHorizontal />
+            ...
           </Button>
 
           {/* countPage */}
@@ -89,7 +105,7 @@ const Pagination = ({
 
           {/* ... */}
           <Button variant="secondary" type="button" disabled>
-            <MoreHorizontal />
+            ...
           </Button>
 
           {/* countPage-4 ~ countPage */}
@@ -121,7 +137,7 @@ const Pagination = ({
 
           {/* ... */}
           <Button type="button" variant="secondary" disabled>
-            <MoreHorizontal />
+            ...
           </Button>
 
           {/* page-1 page page+1 */}
@@ -141,7 +157,7 @@ const Pagination = ({
 
           {/* ... */}
           <Button type="button" variant="secondary" disabled>
-            <MoreHorizontal />
+            ...
           </Button>
 
           {/* countPage */}
@@ -155,7 +171,7 @@ const Pagination = ({
         </>
       )}
 
-      {/* Next */}
+      {/* Next One */}
       <Button
         type="button"
         size="icon"
@@ -164,6 +180,17 @@ const Pagination = ({
         onClick={() => setPage(page + 1)}
       >
         <ChevronRight />
+      </Button>
+
+      {/* Next five */}
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        disabled={page >= countPage - 4}
+        onClick={() => setPage(page + 5)}
+      >
+        <ChevronsRight />
       </Button>
     </div>
   );
