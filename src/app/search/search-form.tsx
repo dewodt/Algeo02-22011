@@ -26,7 +26,17 @@ import ImageResults from "./image-results";
 // Search form & shows result client component
 const SearchForm = () => {
   // Image results state
-  const [imageResults, setImageResults] = useState<ImageResult[]>([]);
+  // Initial state: undefined
+  // No results state: []
+  // Has results state: [Images, ...]
+  const [imageResults, setImageResults] = useState<ImageResult[] | undefined>(
+    undefined
+  );
+
+  // Time taken state
+  // Initial state: undefined
+  // Final state: number
+  const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
 
   const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
     resolver: zodResolver(SearchByUploadFormSchema),
@@ -43,6 +53,7 @@ const SearchForm = () => {
     ? URL.createObjectURL(imageInput)
     : undefined;
 
+  // Submit handler
   const onSubmit = async (data: z.infer<typeof SearchByUploadFormSchema>) => {
     // Toast
     toast({
@@ -51,8 +62,12 @@ const SearchForm = () => {
       duration: Infinity,
     });
 
-    // Reset image results
-    setImageResults([]);
+    // Reset image results & time taken
+    setImageResults(undefined);
+    setTimeTaken(undefined);
+
+    // Start timer
+    const timeStart = Date.now() / 1000;
 
     // Initiate form data
     const formData = new FormData();
@@ -79,8 +94,12 @@ const SearchForm = () => {
       };
     });
 
-    // Set image results
+    // Stop timer
+    const timeEnd = Date.now() / 1000;
+
+    // Set image results & time taken
     setImageResults(imageResults);
+    setTimeTaken(timeEnd - timeStart);
 
     // Toast success
     toast({
@@ -165,18 +184,23 @@ const SearchForm = () => {
         </div>
 
         {/* Image results */}
-        {imageResults.length > 0 && (
+        {imageResults && (
           <>
             <Separator orientation="horizontal" />
             <div className="flex flex-col gap-4">
               {/* Results Title*/}
               <div className="sm:flex sm:flex-row sm:justify-between">
                 <h3 className="font-bold">Results:</h3>
-                <p className="text-sm">X Results in N Seconds</p>
+                <p className="text-sm">
+                  {imageResults.length} Results in {timeTaken!.toFixed(2)}{" "}
+                  Seconds
+                </p>
               </div>
 
               {/* Results Images + Pagination */}
-              <ImageResults imageResults={imageResults} />
+              {imageResults.length > 0 && (
+                <ImageResults imageResults={imageResults} />
+              )}
             </div>
           </>
         )}
