@@ -20,7 +20,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
-import { SearchByUploadDataSetResponse } from "@/types/api";
+import { SearchByUploadDataSetResponse, ErrorResponse } from "@/types/api";
 import ImageResults from "../image-results";
 
 // Search form & shows result client component
@@ -41,14 +41,14 @@ const SearchByUploadForm = () => {
   const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
     resolver: zodResolver(SearchByUploadFormSchema),
     defaultValues: {
-      is_texture: false,
+      isTexture: false,
     },
   });
   const { control, handleSubmit, watch, formState } = form;
   const { isSubmitting } = formState;
 
   // Image input state
-  const imageInput = watch("image_input");
+  const imageInput = watch("imageInput");
   const imageInputURL = imageInput
     ? URL.createObjectURL(imageInput)
     : undefined;
@@ -71,11 +71,11 @@ const SearchByUploadForm = () => {
 
     // Initiate form data
     const formData = new FormData();
-    formData.append("image_input", data.image_input);
-    formData.append("is_texture", data.is_texture.toString());
-    const imageDataSet = Array.from(data.image_dataset);
+    formData.append("imageInput", data.imageInput);
+    formData.append("isTexture", data.isTexture.toString());
+    const imageDataSet = Array.from(data.imageDataSet);
     imageDataSet.forEach((image) => {
-      formData.append("image_dataset", image);
+      formData.append("imageDataSet", image);
     });
 
     // Fetch to end point to be processed
@@ -83,23 +83,25 @@ const SearchByUploadForm = () => {
       body: formData,
       method: "POST",
     });
+    const resJSON: SearchByUploadDataSetResponse | ErrorResponse =
+      await res.json();
 
     if (!res.ok) {
+      const errorJSON = resJSON as ErrorResponse;
       // Toast error
       toast({
         variant: "destructive",
-        title: "Error!",
-        description: "Something went wrong. Please try again.",
+        title: errorJSON.error,
+        description: errorJSON.message,
         duration: 5000,
       });
 
       return;
     }
 
-    const resJSON: SearchByUploadDataSetResponse[] = await res.json();
-
     // Create image results mapping
-    const imageResults: ImageResult[] = resJSON.map((result) => {
+    const successJSON = resJSON as SearchByUploadDataSetResponse;
+    const imageResults: ImageResult[] = successJSON.map((result) => {
       const { index, similarity } = result;
       return {
         image: imageDataSet[index],
@@ -147,7 +149,7 @@ const SearchByUploadForm = () => {
             {/* Image Query Input */}
             <FormField
               control={control}
-              name="image_input"
+              name="imageInput"
               render={({ field: { onChange }, ...field }) => (
                 <FormItem>
                   <FormLabel>Image Query</FormLabel>
@@ -169,7 +171,7 @@ const SearchByUploadForm = () => {
               {/* Toggle Color vs Texture */}
               <FormField
                 control={control}
-                name="is_texture"
+                name="isTexture"
                 render={({ field }) => (
                   <>
                     <FormLabel>Calculation Method</FormLabel>
@@ -224,7 +226,7 @@ const SearchByUploadForm = () => {
         {/* Image Dataset Input */}
         <FormField
           control={control}
-          name="image_dataset"
+          name="imageDataSet"
           render={({ field: { onChange }, ...field }) => (
             <FormItem>
               <FormLabel>Image Dataset</FormLabel>
