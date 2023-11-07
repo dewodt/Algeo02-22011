@@ -1,54 +1,49 @@
-// @ts-expect-error
-import Jimp from "jimp/es";
-import { RGBMatrix } from "@/types/matrix";
-import { RGB } from "@/types/image";
-
-export const solveCBIRWithUploadDataSet = async (
-  imageQuery: File,
-  isTexture: boolean,
-  imageDataSet: FileList
-) => {
-  console.log(imageQuery);
-  console.log(imageDataSet);
-  if (isTexture) {
-    // Handle color method query
-  } else {
-    // Handle texture method query
-    console.log("TES");
-    const test = await convertFileToRGBMatrix(imageQuery);
-    console.log(test);
-    console.log("TES");
-  }
-};
+import sharp from "sharp";
+import type { RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
 
 export const convertFileToRGBMatrix = async (
   file: File
-): Promise<RGBMatrix> => {
-  // Convert from file to buffer (Jimp accepts buffer)
+): Promise<ImageData<RGB>> => {
+  // Convert from file to buffer
   const blob = new Blob([file]);
   const arrBuff = await blob.arrayBuffer();
   const buffer = Buffer.from(arrBuff);
 
-  const rgbMatrix: RGBMatrix = [];
+  // Convert file to raw image data
+  const { data, info } = await sharp(buffer)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
-  // @ts-expect-error
-  Jimp.read(buffer, (err, image) => {
-    if (err) throw err;
+  const pixelArray = new Uint8ClampedArray(data.buffer);
 
-    const width = image.getWidth();
-    const height = image.getHeight();
+  const channels = info.channels;
+  const width = info.width;
+  const height = info.height;
 
-    for (let i = 0; i < height; i++) {
-      let row: RGB[] = [];
-      for (let j = 0; j < width; j++) {
-        const pixel = Jimp.intToRGBA(image.getPixelColor(j, i));
-        const { r, g, b } = pixel;
+  // Get RGB matrix
+  const rgbMatrix: ImageMatrix<RGB> = [];
 
-        row.push([r, g, b]);
-      }
-      rgbMatrix.push(row);
+  for (let i = 0; i < height; i++) {
+    const row: RGB[] = [];
+    for (let j = 0; j < width; j++) {
+      const index = (i * width + j) * channels;
+
+      const r = pixelArray[index];
+      const g = pixelArray[index + 1];
+      const b = pixelArray[index + 2];
+
+      const pixel: RGB = [r, g, b];
+
+      row.push(pixel);
     }
-  });
+    rgbMatrix.push(row);
+  }
 
-  return rgbMatrix;
+  const imageData: ImageData<RGB> = {
+    width,
+    height,
+    matrix: rgbMatrix,
+  };
+
+  return imageData;
 };
