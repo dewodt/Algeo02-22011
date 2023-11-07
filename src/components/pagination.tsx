@@ -18,6 +18,7 @@ const Pagination = ({
       {/* Previous */}
       <Button
         size="icon"
+        type="button"
         variant="secondary"
         disabled={page == 1}
         onClick={() => setPage(page - 1)}
@@ -33,6 +34,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -50,6 +52,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -59,13 +62,14 @@ const Pagination = ({
           })}
 
           {/* ... */}
-          <Button variant="secondary" disabled>
+          <Button variant="secondary" type="button" disabled>
             <MoreHorizontal />
           </Button>
 
           {/* countPage */}
           <Button
             variant={countPage == page ? "default" : "secondary"}
+            type="button"
             onClick={() => setPage(countPage)}
           >
             {countPage}
@@ -77,13 +81,14 @@ const Pagination = ({
           {/* 1 */}
           <Button
             variant={1 == page ? "default" : "secondary"}
+            type="button"
             onClick={() => setPage(1)}
           >
             1
           </Button>
 
           {/* ... */}
-          <Button variant="secondary" disabled>
+          <Button variant="secondary" type="button" disabled>
             <MoreHorizontal />
           </Button>
 
@@ -93,6 +98,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -106,6 +112,7 @@ const Pagination = ({
           {/* 1 ... page-1 page page+1 ... countPage */}
           {/* 1 */}
           <Button
+            type="button"
             variant={1 == page ? "default" : "secondary"}
             onClick={() => setPage(1)}
           >
@@ -113,7 +120,7 @@ const Pagination = ({
           </Button>
 
           {/* ... */}
-          <Button variant="secondary" disabled>
+          <Button type="button" variant="secondary" disabled>
             <MoreHorizontal />
           </Button>
 
@@ -122,6 +129,7 @@ const Pagination = ({
             const num = page - 1 + idx;
             return (
               <Button
+                type="button"
                 key={`${num}_${page}`}
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
@@ -132,12 +140,13 @@ const Pagination = ({
           })}
 
           {/* ... */}
-          <Button variant="secondary" disabled>
+          <Button type="button" variant="secondary" disabled>
             <MoreHorizontal />
           </Button>
 
           {/* countPage */}
           <Button
+            type="button"
             variant={countPage == page ? "default" : "secondary"}
             onClick={() => setPage(countPage)}
           >
@@ -148,6 +157,7 @@ const Pagination = ({
 
       {/* Next */}
       <Button
+        type="button"
         size="icon"
         variant="secondary"
         disabled={page == countPage}
