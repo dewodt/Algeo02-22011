@@ -18,37 +18,109 @@ import {
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SearchFormSchema } from "@/lib/zod";
+import { SearchByUploadFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
+import { SearchByUploadDataSetResponse } from "@/types/api";
 import ImageResults from "./image-results";
-import { solveCBIRWithUploadDataSet } from "@/lib/cbir";
 
 // Search form & shows result client component
 const SearchForm = () => {
   // Image results state
-  const [imageResults, setImageResults] = useState<ImageResult[]>([]);
+  // Initial state: undefined
+  // No results state: []
+  // Has results state: [Images, ...]
+  const [imageResults, setImageResults] = useState<ImageResult[] | undefined>(
+    undefined
+  );
 
-  const form = useForm<z.infer<typeof SearchFormSchema>>({
-    resolver: zodResolver(SearchFormSchema),
+  // Time taken state
+  // Initial state: undefined
+  // Final state: number
+  const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
+
+  const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
+    resolver: zodResolver(SearchByUploadFormSchema),
     defaultValues: {
       is_texture: false,
     },
   });
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, formState } = form;
+  const { isSubmitting } = formState;
+
   // Image input state
   const imageInput = watch("image_input");
   const imageInputURL = imageInput
     ? URL.createObjectURL(imageInput)
     : undefined;
 
-  const onSubmit = async (data: z.infer<typeof SearchFormSchema>) => {
-    // Solve CBIR
-    console.log(data);
-    solveCBIRWithUploadDataSet(
-      data.image_input,
-      data.is_texture,
-      data.image_dataset
-    );
+  // Submit handler
+  const onSubmit = async (data: z.infer<typeof SearchByUploadFormSchema>) => {
+    // Toast
+    toast({
+      title: "Loading...",
+      description: "Please wait.",
+      duration: Infinity,
+    });
+
+    // Reset image results & time taken
+    setImageResults(undefined);
+    setTimeTaken(undefined);
+
+    // Start timer
+    const timeStart = Date.now() / 1000;
+
+    // Initiate form data
+    const formData = new FormData();
+    formData.append("image_input", data.image_input);
+    formData.append("is_texture", data.is_texture.toString());
+    const imageDataSet = Array.from(data.image_dataset);
+    imageDataSet.forEach((image) => {
+      formData.append("image_dataset", image);
+    });
+
+    // Fetch to end point to be processed
+    const res = await fetch("/api/query/dataset/", {
+      body: formData,
+      method: "POST",
+    });
+
+    if (!res.ok) {
+      // Toast error
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: "Something went wrong. Please try again.",
+        duration: 5000,
+      });
+
+      return;
+    }
+
+    const resJSON: SearchByUploadDataSetResponse[] = await res.json();
+
+    // Create image results mapping
+    const imageResults: ImageResult[] = resJSON.map((result) => {
+      const { index, similarity } = result;
+      return {
+        image: imageDataSet[index],
+        similarity: similarity,
+      };
+    });
+
+    // Stop timer
+    const timeEnd = Date.now() / 1000;
+
+    // Set image results & time taken
+    setImageResults(imageResults);
+    setTimeTaken(timeEnd - timeStart);
+
+    // Toast success
+    toast({
+      variant: "success",
+      title: "Success!",
+      description: "Image results are shown below.",
+      duration: 5000,
+    });
   };
 
   return (
@@ -118,7 +190,7 @@ const SearchForm = () => {
               />
 
               {/* Search / submit button */}
-              <Button size="lg" type="submit">
+              <Button size="lg" type="submit" disabled={isSubmitting}>
                 Search
               </Button>
             </div>
@@ -126,18 +198,23 @@ const SearchForm = () => {
         </div>
 
         {/* Image results */}
-        {imageResults.length > 0 && (
+        {imageResults && (
           <>
             <Separator orientation="horizontal" />
             <div className="flex flex-col gap-4">
               {/* Results Title*/}
               <div className="sm:flex sm:flex-row sm:justify-between">
                 <h3 className="font-bold">Results:</h3>
-                <p className="text-sm">X Results in N Seconds</p>
+                <p className="text-sm">
+                  {imageResults.length} Results in {timeTaken!.toFixed(2)}{" "}
+                  Seconds
+                </p>
               </div>
 
               {/* Results Images + Pagination */}
-              <ImageResults imageResults={imageResults} />
+              {imageResults.length > 0 && (
+                <ImageResults imageResults={imageResults} />
+              )}
             </div>
           </>
         )}
@@ -159,21 +236,7 @@ const SearchForm = () => {
                   // @ts-expect-error
                   webkitdirectory=""
                   directory=""
-                  onChange={(e) => {
-                    onChange(e.target.files);
-
-                    // TO TEST PAGINATION
-                    const newImages = Array.from(e.target.files!).map(
-                      (image) => {
-                        return {
-                          image: image,
-                          similarity: Math.random(),
-                        };
-                      }
-                    );
-
-                    setImageResults(newImages);
-                  }}
+                  onChange={(e) => onChange(e.target.files!)}
                   {...field}
                 />
               </FormControl>

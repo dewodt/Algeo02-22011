@@ -1,6 +1,11 @@
 // Pagination with 7 blocks
 
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Dispatch, type SetStateAction } from "react";
 
@@ -15,9 +20,21 @@ const Pagination = ({
 }) => {
   return (
     <div className="flex flex-row flex-wrap items-center justify-center gap-2">
-      {/* Previous */}
+      {/* Previous five */}
       <Button
         size="icon"
+        type="button"
+        variant="secondary"
+        disabled={page <= 5}
+        onClick={() => setPage(page - 5)}
+      >
+        <ChevronsLeft />
+      </Button>
+
+      {/* Previous One */}
+      <Button
+        size="icon"
+        type="button"
         variant="secondary"
         disabled={page == 1}
         onClick={() => setPage(page - 1)}
@@ -33,6 +50,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -50,6 +68,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -59,13 +78,14 @@ const Pagination = ({
           })}
 
           {/* ... */}
-          <Button variant="secondary" disabled>
-            <MoreHorizontal />
+          <Button variant="secondary" type="button" disabled>
+            ...
           </Button>
 
           {/* countPage */}
           <Button
             variant={countPage == page ? "default" : "secondary"}
+            type="button"
             onClick={() => setPage(countPage)}
           >
             {countPage}
@@ -77,14 +97,15 @@ const Pagination = ({
           {/* 1 */}
           <Button
             variant={1 == page ? "default" : "secondary"}
+            type="button"
             onClick={() => setPage(1)}
           >
             1
           </Button>
 
           {/* ... */}
-          <Button variant="secondary" disabled>
-            <MoreHorizontal />
+          <Button variant="secondary" type="button" disabled>
+            ...
           </Button>
 
           {/* countPage-4 ~ countPage */}
@@ -93,6 +114,7 @@ const Pagination = ({
             return (
               <Button
                 key={num}
+                type="button"
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
               >
@@ -106,6 +128,7 @@ const Pagination = ({
           {/* 1 ... page-1 page page+1 ... countPage */}
           {/* 1 */}
           <Button
+            type="button"
             variant={1 == page ? "default" : "secondary"}
             onClick={() => setPage(1)}
           >
@@ -113,8 +136,8 @@ const Pagination = ({
           </Button>
 
           {/* ... */}
-          <Button variant="secondary" disabled>
-            <MoreHorizontal />
+          <Button type="button" variant="secondary" disabled>
+            ...
           </Button>
 
           {/* page-1 page page+1 */}
@@ -122,6 +145,7 @@ const Pagination = ({
             const num = page - 1 + idx;
             return (
               <Button
+                type="button"
                 key={`${num}_${page}`}
                 variant={num == page ? "default" : "secondary"}
                 onClick={() => setPage(num)}
@@ -132,12 +156,13 @@ const Pagination = ({
           })}
 
           {/* ... */}
-          <Button variant="secondary" disabled>
-            <MoreHorizontal />
+          <Button type="button" variant="secondary" disabled>
+            ...
           </Button>
 
           {/* countPage */}
           <Button
+            type="button"
             variant={countPage == page ? "default" : "secondary"}
             onClick={() => setPage(countPage)}
           >
@@ -146,14 +171,26 @@ const Pagination = ({
         </>
       )}
 
-      {/* Next */}
+      {/* Next One */}
       <Button
+        type="button"
         size="icon"
         variant="secondary"
         disabled={page == countPage}
         onClick={() => setPage(page + 1)}
       >
         <ChevronRight />
+      </Button>
+
+      {/* Next five */}
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        disabled={page >= countPage - 4}
+        onClick={() => setPage(page + 5)}
+      >
+        <ChevronsRight />
       </Button>
     </div>
   );
