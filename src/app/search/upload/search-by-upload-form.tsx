@@ -21,10 +21,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
 import { SearchByUploadDataSetResponse } from "@/types/api";
-import ImageResults from "./image-results";
+import ImageResults from "../image-results";
 
 // Search form & shows result client component
-const SearchForm = () => {
+const SearchByUploadForm = () => {
   // Image results state
   // Initial state: undefined
   // No results state: []
@@ -79,7 +79,7 @@ const SearchForm = () => {
     });
 
     // Fetch to end point to be processed
-    const res = await fetch("/api/query/dataset/", {
+    const res = await fetch("/api/search/upload/", {
       body: formData,
       method: "POST",
     });
@@ -249,4 +249,4 @@ const SearchForm = () => {
   );
 };
 
-export default SearchForm;
+export default SearchByUploadForm;
