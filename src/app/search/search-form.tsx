@@ -18,37 +18,76 @@ import {
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SearchFormSchema } from "@/lib/zod";
+import { SearchByUploadFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
+import { SearchByUploadDataSetResponse } from "@/types/api";
 import ImageResults from "./image-results";
-import { solveCBIRWithUploadDataSet } from "@/lib/cbir";
 
 // Search form & shows result client component
 const SearchForm = () => {
   // Image results state
   const [imageResults, setImageResults] = useState<ImageResult[]>([]);
 
-  const form = useForm<z.infer<typeof SearchFormSchema>>({
-    resolver: zodResolver(SearchFormSchema),
+  const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
+    resolver: zodResolver(SearchByUploadFormSchema),
     defaultValues: {
       is_texture: false,
     },
   });
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, formState } = form;
+  const { isSubmitting } = formState;
+
   // Image input state
   const imageInput = watch("image_input");
   const imageInputURL = imageInput
     ? URL.createObjectURL(imageInput)
     : undefined;
 
-  const onSubmit = async (data: z.infer<typeof SearchFormSchema>) => {
-    // Solve CBIR
-    console.log(data);
-    solveCBIRWithUploadDataSet(
-      data.image_input,
-      data.is_texture,
-      data.image_dataset
-    );
+  const onSubmit = async (data: z.infer<typeof SearchByUploadFormSchema>) => {
+    // Toast
+    toast({
+      title: "Loading...",
+      description: "Please wait.",
+      duration: Infinity,
+    });
+
+    // Reset image results
+    setImageResults([]);
+
+    // Initiate form data
+    const formData = new FormData();
+    formData.append("image_input", data.image_input);
+    formData.append("is_texture", data.is_texture.toString());
+    const imageDataSet = Array.from(data.image_dataset);
+    imageDataSet.forEach((image) => {
+      formData.append("image_dataset", image);
+    });
+
+    // Fetch to end point to be processed
+    const res = await fetch("/api/query/dataset/", {
+      body: formData,
+      method: "POST",
+    });
+    const resJSON: SearchByUploadDataSetResponse[] = await res.json();
+
+    // Create image results mapping
+    const imageResults: ImageResult[] = resJSON.map((result) => {
+      const { index, similarity } = result;
+      return {
+        image: imageDataSet[index],
+        similarity: similarity,
+      };
+    });
+
+    // Set image results
+    setImageResults(imageResults);
+
+    // Toast success
+    toast({
+      title: "Success!",
+      description: "Image results are shown below.",
+      duration: 5000,
+    });
   };
 
   return (
@@ -118,7 +157,7 @@ const SearchForm = () => {
               />
 
               {/* Search / submit button */}
-              <Button size="lg" type="submit">
+              <Button size="lg" type="submit" disabled={isSubmitting}>
                 Search
               </Button>
             </div>
@@ -159,21 +198,7 @@ const SearchForm = () => {
                   // @ts-expect-error
                   webkitdirectory=""
                   directory=""
-                  onChange={(e) => {
-                    onChange(e.target.files);
-
-                    // TO TEST PAGINATION
-                    const newImages = Array.from(e.target.files!).map(
-                      (image) => {
-                        return {
-                          image: image,
-                          similarity: Math.random(),
-                        };
-                      }
-                    );
-
-                    setImageResults(newImages);
-                  }}
+                  onChange={(e) => onChange(e.target.files!)}
                   {...field}
                 />
               </FormControl>

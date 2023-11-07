@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { allowedImagesTypes } from "./constants";
 
-export const SearchFormSchema = z.object({
+export const SearchByUploadFormSchema = z.object({
   image_input: z
     .custom<File>((input) => input instanceof File, "Please select query image")
     .refine(
