@@ -83,6 +83,19 @@ const SearchForm = () => {
       body: formData,
       method: "POST",
     });
+
+    if (!res.ok) {
+      // Toast error
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: "Something went wrong. Please try again.",
+        duration: 5000,
+      });
+
+      return;
+    }
+
     const resJSON: SearchByUploadDataSetResponse[] = await res.json();
 
     // Create image results mapping
@@ -103,6 +116,7 @@ const SearchForm = () => {
 
     // Toast success
     toast({
+      variant: "success",
       title: "Success!",
       description: "Image results are shown below.",
       duration: 5000,
