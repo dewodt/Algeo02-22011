@@ -6,11 +6,11 @@ export const solveCBIRColor = async (
   imageDataSet: File[]
 ) => {
   // Convert to hsv
-  const queryImageData = await convertFileToHSVMatrix(imageQuery);
+  const inputImageData = await convertFileToHSVMatrix(imageQuery);
 
   // Get feature vector
-  const queryImageFeatureVector =
-    getImageHSVGlobalHistogramFeatureVector(queryImageData);
+  const inputImageFeatureVector =
+    getImageHSVGlobalHistogramFeatureVector(inputImageData);
 
   // Compare to dataset
   const compareResult = await Promise.all(
@@ -23,7 +23,7 @@ export const solveCBIRColor = async (
 
       // Check similarity
       const similarity = getSimiliarity(
-        queryImageFeatureVector,
+        inputImageFeatureVector,
         dataSetImageFeatureVector
       );
 
