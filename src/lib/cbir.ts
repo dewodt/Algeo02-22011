@@ -116,6 +116,26 @@ export const getImageHSVGlobalHistogramFeatureVector = (
   return queryFeatureVector;
 };
 
+export const getImageTextureVector = (coMatrix: ImageMatrix<number>): number[] => {
+  let contrast = 0;
+  let homogeneity = 0;
+  let entropy = 0;
+  let energy = 0;
+
+  for (let i = 0; i < 256; i++) {
+    for (let j = 0; j < 256; j++) {
+      contrast += coMatrix[i][j]*(i-j)*(i-j);
+      homogeneity += coMatrix[i][j]/(1 + (i-j)*(i-j));
+      entropy -= coMatrix[i][j]*Math.log(coMatrix[i][j]);
+      energy += Math.pow(coMatrix[i][j], 2);
+    }
+  }
+
+  const queryTextureVector: number[] = [contrast, homogeneity, entropy, energy];
+
+  return queryTextureVector;
+}
+
 export const getSimiliarity = (A: number[], B: number[]): number => {
   // Precondition: A.length === B.length
   const n = A.length;
@@ -182,9 +202,9 @@ export const convertFileToRGBMatrix = async (
   return imageData;
 };
 
-export const convertFileToGrayMatrix = async (
+export const convertFileToCoMatrix = async (
   file: File
-): Promise<ImageData<Gray>> => {
+): Promise<ImageMatrix<number>> => {
   // Convert from file to buffer
   const blob = new Blob([file]);
   const arrBuff = await blob.arrayBuffer();
@@ -201,11 +221,12 @@ export const convertFileToGrayMatrix = async (
   const width = info.width;
   const height = info.height;
 
-  // Get RGB matrix
-  const grayMatrix: ImageMatrix<Gray> = [];
+  // Get Co-occurance Matrix
+  const normalizedOoc = 1/(height*(width-1));
+  const coMatrix: ImageMatrix<number> = new Array(256).fill(Array(256).fill(0));
 
   for (let i = 0; i < height; i++) {
-    const row: Gray[] = [];
+    const rowGray: Gray[] = [];
     for (let j = 0; j < width; j++) {
       const index = (i * width + j) * channels;
 
@@ -214,19 +235,15 @@ export const convertFileToGrayMatrix = async (
       const b = pixelArray[index + 2];
 
       const pixel: number = Math.round(0.29*r + 0.587*g + 0.114*b);
-
-      row.push(pixel);
+      if (j != 0) {
+        coMatrix[rowGray[i-1]][rowGray[i]] += normalizedOoc;
+        coMatrix[rowGray[i]][rowGray[i-1]] += normalizedOoc;
+      }
+      rowGray.push(pixel);
     }
-    grayMatrix.push(row);
   }
 
-  const imageData: ImageData<Gray> = {
-    width,
-    height,
-    matrix: grayMatrix,
-  };
-
-  return imageData;
+  return coMatrix;
 };
 
 export const convertFileToHSVMatrix = async (
