@@ -7,6 +7,8 @@ export type RGB = [number, number, number];
 
 export type HSV = [number, number, number];
 
+export type Gray = number;
+
 export type ImageMatrix<T> = T[][];
 
 export interface ImageData<T> {

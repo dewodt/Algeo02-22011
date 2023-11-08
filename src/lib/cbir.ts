@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import type { RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
+import type { Gray, RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
 
 export const solveCBIRColor = async (
   imageQuery: File,
@@ -177,6 +177,53 @@ export const convertFileToRGBMatrix = async (
     width,
     height,
     matrix: rgbMatrix,
+  };
+
+  return imageData;
+};
+
+export const convertFileToGrayMatrix = async (
+  file: File
+): Promise<ImageData<Gray>> => {
+  // Convert from file to buffer
+  const blob = new Blob([file]);
+  const arrBuff = await blob.arrayBuffer();
+  const buffer = Buffer.from(arrBuff);
+
+  // Convert file to raw image data
+  const { data, info } = await sharp(buffer)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const pixelArray = new Uint8ClampedArray(data.buffer);
+
+  const channels = info.channels;
+  const width = info.width;
+  const height = info.height;
+
+  // Get RGB matrix
+  const grayMatrix: ImageMatrix<Gray> = [];
+
+  for (let i = 0; i < height; i++) {
+    const row: Gray[] = [];
+    for (let j = 0; j < width; j++) {
+      const index = (i * width + j) * channels;
+
+      const r = pixelArray[index];
+      const g = pixelArray[index + 1];
+      const b = pixelArray[index + 2];
+
+      const pixel: number = Math.round(0.29*r + 0.587*g + 0.114*b);
+
+      row.push(pixel);
+    }
+    grayMatrix.push(row);
+  }
+
+  const imageData: ImageData<Gray> = {
+    width,
+    height,
+    matrix: grayMatrix,
   };
 
   return imageData;
