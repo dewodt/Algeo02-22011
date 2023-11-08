@@ -22,6 +22,9 @@ import { SearchByUploadFormSchema } from "@/lib/zod";
 import { type ImageResult } from "@/types/image";
 import { SearchByUploadDataSetResponse, ErrorResponse } from "@/types/api";
 import ImageResults from "../image-results";
+import { FileText, Loader } from "lucide-react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import ResultPDFTemplate from "@/components/pdf/result-pdf-template";
 
 // Search form & shows result client component
 const SearchByUploadForm = () => {
@@ -217,6 +220,40 @@ const SearchByUploadForm = () => {
               {imageResults.length > 0 && (
                 <ImageResults imageResults={imageResults} />
               )}
+
+              {/* Convert result to pdf button */}
+              <PDFDownloadLink
+                className="w-full self-center sm:max-w-xs"
+                document={
+                  <ResultPDFTemplate
+                    imageResults={imageResults}
+                    timeTaken={timeTaken!}
+                  />
+                }
+                fileName="Reverse Image Result.pdf"
+              >
+                {({ loading }) => (
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    type="button"
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader className="mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="mr-2" />
+                        Convert to PDF
+                      </>
+                    )}
+                  </Button>
+                )}
+              </PDFDownloadLink>
             </div>
           </>
         )}

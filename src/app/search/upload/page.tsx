@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 import SearchByUploadForm from "./search-by-upload-form";
 
 export const metadata: Metadata = {
-  title: "Search | HBD Lens",
+  title: "Search By Upload Data Set | HBD Lens",
   description: "Reverse image.",
 };
 
