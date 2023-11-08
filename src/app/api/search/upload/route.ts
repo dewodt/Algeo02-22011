@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { solveCBIRColor } from "@/lib/cbir";
+import { solveCBIR } from "@/lib/cbir";
 import { SearchByUploadHttpSchema } from "@/lib/zod";
 
 export const POST = async (req: NextRequest) => {
@@ -29,13 +29,8 @@ export const POST = async (req: NextRequest) => {
   const { imageInput, isTexture, imageDataSet } = zodParseResult.data;
 
   // Process data
-  if (isTexture) {
-    // Solve texture
-  } else {
-    // Solve color
-    const CBIRColorResult = await solveCBIRColor(imageInput, imageDataSet);
+  const CBIRColorResult = await solveCBIR(imageInput, imageDataSet, isTexture);
 
-    // Return response
-    return NextResponse.json(CBIRColorResult);
-  }
+  // Return response
+  return NextResponse.json(CBIRColorResult);
 };

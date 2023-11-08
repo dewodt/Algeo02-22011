@@ -1,26 +1,49 @@
 import sharp from "sharp";
 import type { Gray, RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
 
-export const solveCBIRColor = async (
+export const solveCBIR = async (
   imageQuery: File,
-  imageDataSet: File[]
+  imageDataSet: File[],
+  isTexture: boolean
 ) => {
-  // Convert to hsv
-  const inputImageData = await convertFileToHSVMatrix(imageQuery);
+  let inputImageFeatureVector: number[];
 
-  // Get feature vector
-  const inputImageFeatureVector =
-    getImageHSVGlobalHistogramFeatureVector(inputImageData);
+  if (isTexture) {
+    // Convert to co-occurance Matrix
+    const inputImageData = await convertFileToCoMatrix(imageQuery);
+
+    // Get texture vector
+    inputImageFeatureVector =
+      getImageTextureVector(inputImageData);
+  } else {
+    // Convert to hsv
+    const inputImageData = await convertFileToHSVMatrix(imageQuery);
+  
+    // Get feature vector
+    inputImageFeatureVector =
+      getImageHSVGlobalHistogramFeatureVector(inputImageData);
+  }
 
   // Compare to dataset
   const compareResult = await Promise.all(
     imageDataSet.map(async (image, index) => {
-      // Convert to hsv
-      const dataSetImageData = await convertFileToHSVMatrix(image);
-      // Get feature vector
-      const dataSetImageFeatureVector =
-        getImageHSVGlobalHistogramFeatureVector(dataSetImageData);
-
+      let dataSetImageFeatureVector: number[];
+      if (isTexture) {
+        // Convert to co-occurance Matrix
+        const dataSetImageData = await convertFileToCoMatrix(imageQuery);
+    
+        // Get texture vector
+        dataSetImageFeatureVector =
+          getImageTextureVector(dataSetImageData);
+      } else {
+        // Convert to hsv
+        const dataSetImageData = await convertFileToHSVMatrix(imageQuery);
+      
+        // Get feature vector
+        dataSetImageFeatureVector =
+          getImageHSVGlobalHistogramFeatureVector(dataSetImageData);
+      }
+      
       // Check similarity
       const similarity = getSimiliarity(
         inputImageFeatureVector,
