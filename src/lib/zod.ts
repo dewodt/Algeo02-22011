@@ -23,6 +23,7 @@ export const SearchByUploadFormSchema = z.object({
     ),
 });
 
+// File List is not available in the server side
 export const SearchByUploadHttpSchema = z.object({
   imageInput: z
     .custom<File>((input) => input instanceof File, "Please select query image")
@@ -41,4 +42,17 @@ export const SearchByUploadHttpSchema = z.object({
       (files) => files.every((file) => allowedImagesTypes.includes(file!.type)),
       "Only these types are allowed .jpg, .jpeg, and .png"
     ),
+});
+
+export const SearchByScrapeFormSchema = z.object({
+  imageInput: z
+    .custom<File>((input) => input instanceof File, "Please select query image")
+    .refine(
+      (file) => allowedImagesTypes.includes(file!.type),
+      "Only these types are allowed .jpg, .jpeg, and .png"
+    ),
+  isTexture: z.boolean(),
+  scrapeUrl: z
+    .string({ required_error: "Please enter image data set link to scrape" })
+    .url({ message: "Please enter a valid url" }),
 });

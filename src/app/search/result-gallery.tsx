@@ -1,12 +1,12 @@
 "use client";
 
-import { ImageResult } from "@/types/image";
+import { ImageResults } from "@/types/image";
 import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Pagination from "@/components/pagination";
 
-const ImageResults = ({ imageResults }: { imageResults: ImageResult[] }) => {
+const ResultGallery = ({ imageResults }: { imageResults: ImageResults }) => {
   // Count total result & total pages
   const countResult = imageResults.length;
   const countPage = Math.ceil(countResult / 6);
@@ -20,13 +20,12 @@ const ImageResults = ({ imageResults }: { imageResults: ImageResult[] }) => {
       {/* Images */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
         {currentPage.map((image, idx) => {
-          const url = URL.createObjectURL(image.image);
           return (
             // Image with label
             <div key={idx} className="relative">
               <Image
                 className="aspect-[5/3] w-full rounded-lg border-2 border-border object-cover object-center"
-                src={url}
+                src={image.imageSrc}
                 alt={`Image result #${idx + 1}`}
                 width={100}
                 height={100}
@@ -45,4 +44,4 @@ const ImageResults = ({ imageResults }: { imageResults: ImageResult[] }) => {
   );
 };
 
-export default ImageResults;
+export default ResultGallery;
