@@ -107,8 +107,8 @@ const SearchByUploadPDF = ({
           const url = URL.createObjectURL(image.image);
           return (
             <View key={idx} style={styles.imageSection}>
+              {/* eslint-disable-next-line */}
               <Image src={url} style={styles.image} />
-              {/* eslint-disable-line */}
               <Text style={styles.imageLabel}>
                 {(image.similarity * 100).toFixed(2)}%
               </Text>
