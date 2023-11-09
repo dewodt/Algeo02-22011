@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-evenly",
-    gap: 8,
+    gap: 16,
   },
   imageSection: {
     display: "flex",
@@ -69,6 +69,8 @@ const styles = StyleSheet.create({
   image: {
     width: 150,
     height: 150,
+    objectFit: "cover",
+    objectPosition: "center",
   },
   imageLabel: {
     fontSize: 12,
