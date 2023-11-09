@@ -1,12 +1,16 @@
 "use client";
 
-import { ImageResult } from "@/types/image";
+import { SearchByUploadImageResults } from "@/types/image";
 import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Pagination from "@/components/pagination";
 
-const ImageResults = ({ imageResults }: { imageResults: ImageResult[] }) => {
+const SearchByUploadGallery = ({
+  imageResults,
+}: {
+  imageResults: SearchByUploadImageResults;
+}) => {
   // Count total result & total pages
   const countResult = imageResults.length;
   const countPage = Math.ceil(countResult / 6);
@@ -45,4 +49,4 @@ const ImageResults = ({ imageResults }: { imageResults: ImageResult[] }) => {
   );
 };
 
-export default ImageResults;
+export default SearchByUploadGallery;

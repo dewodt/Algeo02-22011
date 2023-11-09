@@ -19,12 +19,15 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
-import { type ImageResult } from "@/types/image";
-import { SearchByUploadDataSetResponse, ErrorResponse } from "@/types/api";
-import ImageResults from "../image-results";
+import type {
+  SearchByUploadImageResults,
+  SearchByUploadImageResultsState,
+} from "@/types/image";
+import type { SuccessSearchByUploadResponse, ErrorResponse } from "@/types/api";
+import SearchByUploadGallery from "./search-by-upload-gallery";
 import { FileText, Loader } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import ResultPDFTemplate from "@/components/pdf/result-pdf-template";
+import SearchByUploadPDF from "./search-by-upload-pdf";
 
 // Search form & shows result client component
 const SearchByUploadForm = () => {
@@ -32,9 +35,8 @@ const SearchByUploadForm = () => {
   // Initial state: undefined
   // No results state: []
   // Has results state: [Images, ...]
-  const [imageResults, setImageResults] = useState<ImageResult[] | undefined>(
-    undefined
-  );
+  const [imageResults, setImageResults] =
+    useState<SearchByUploadImageResultsState>(undefined);
 
   // Time taken state
   // Initial state: undefined
@@ -86,7 +88,7 @@ const SearchByUploadForm = () => {
       body: formData,
       method: "POST",
     });
-    const resJSON: SearchByUploadDataSetResponse | ErrorResponse =
+    const resJSON: SuccessSearchByUploadResponse | ErrorResponse =
       await res.json();
 
     if (!res.ok) {
@@ -103,14 +105,16 @@ const SearchByUploadForm = () => {
     }
 
     // Create image results mapping
-    const successJSON = resJSON as SearchByUploadDataSetResponse;
-    const imageResults: ImageResult[] = successJSON.map((result) => {
-      const { index, similarity } = result;
-      return {
-        image: imageDataSet[index],
-        similarity: similarity,
-      };
-    });
+    const successJSON = resJSON as SuccessSearchByUploadResponse;
+    const imageResults: SearchByUploadImageResults = successJSON.map(
+      (result) => {
+        const { index, similarity } = result;
+        return {
+          image: imageDataSet[index],
+          similarity: similarity,
+        };
+      }
+    );
 
     // Stop timer
     const timeEnd = Date.now() / 1000;
@@ -218,14 +222,14 @@ const SearchByUploadForm = () => {
 
               {/* Results Images + Pagination */}
               {imageResults.length > 0 && (
-                <ImageResults imageResults={imageResults} />
+                <SearchByUploadGallery imageResults={imageResults} />
               )}
 
               {/* Convert result to pdf button */}
               <PDFDownloadLink
                 className="w-full self-center sm:max-w-xs"
                 document={
-                  <ResultPDFTemplate
+                  <SearchByUploadPDF
                     imageResults={imageResults}
                     timeTaken={timeTaken!}
                   />
@@ -242,7 +246,7 @@ const SearchByUploadForm = () => {
                   >
                     {loading ? (
                       <>
-                        <Loader className="mr-2" />
+                        <Loader className="mr-2 animate-spin" />
                         Loading...
                       </>
                     ) : (

@@ -1,3 +1,4 @@
+import { type SearchByUploadImageResults } from "@/types/image";
 import {
   Document,
   Page,
@@ -7,7 +8,6 @@ import {
   Image,
   Font,
 } from "@react-pdf/renderer";
-import { ImageResult } from "@/types/image";
 
 Font.register({
   family: "Inter",
@@ -77,11 +77,11 @@ const styles = StyleSheet.create({
 });
 
 // Create Document Component
-const ResultPDFTemplate = ({
+const SearchByUploadPDF = ({
   imageResults,
   timeTaken,
 }: {
-  imageResults: ImageResult[];
+  imageResults: SearchByUploadImageResults;
   timeTaken: number;
 }) => (
   <Document
@@ -117,4 +117,4 @@ const ResultPDFTemplate = ({
   </Document>
 );
 
-export default ResultPDFTemplate;
+export default SearchByUploadPDF;
