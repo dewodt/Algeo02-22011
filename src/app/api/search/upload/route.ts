@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { solveCBIRColor } from "@/lib/cbir";
 import { SearchByUploadHttpSchema } from "@/lib/zod";
+import { SuccessSearchByUploadResponse } from "@/types/api";
 
 export const POST = async (req: NextRequest) => {
   // Get data from form data
@@ -18,7 +19,6 @@ export const POST = async (req: NextRequest) => {
   // Validate data
   const zodParseResult = SearchByUploadHttpSchema.safeParse(rawDataObject);
   if (!zodParseResult.success) {
-    console.log(zodParseResult.error.errors);
     return NextResponse.json(
       { error: "Bad Request", message: "Invalid data format" },
       { status: 400 }
@@ -33,7 +33,10 @@ export const POST = async (req: NextRequest) => {
     // Solve texture
   } else {
     // Solve color
-    const CBIRColorResult = await solveCBIRColor(imageInput, imageDataSet);
+    const CBIRColorResult: SuccessSearchByUploadResponse = await solveCBIRColor(
+      imageInput,
+      imageDataSet
+    );
 
     // Return response
     return NextResponse.json(CBIRColorResult);

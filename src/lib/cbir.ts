@@ -3,9 +3,11 @@ import type { RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
 
 export const solveCBIRColor = async (
   imageQuery: File,
-  imageDataSet: File[]
+  imageDataSet: Buffer[] | File[]
+  // Upload data set pass File[]
+  // Scrape data set pass Buffer[]
 ) => {
-  // Convert to hsv
+  // Convert input image (file) to hsv
   const inputImageData = await convertFileToHSVMatrix(imageQuery);
 
   // Get feature vector
@@ -16,7 +18,11 @@ export const solveCBIRColor = async (
   const compareResult = await Promise.all(
     imageDataSet.map(async (image, index) => {
       // Convert to hsv
-      const dataSetImageData = await convertFileToHSVMatrix(image);
+      const dataSetImageData =
+        image instanceof File
+          ? await convertFileToHSVMatrix(image)
+          : await convertBufferToHSVMatrix(image);
+
       // Get feature vector
       const dataSetImageFeatureVector =
         getImageHSVGlobalHistogramFeatureVector(dataSetImageData);
@@ -47,13 +53,13 @@ export const solveCBIRColor = async (
 };
 
 export const getImageHSVGlobalHistogramFeatureVector = (
-  queryImageHSV: ImageData<HSV>
+  imageDataHSV: ImageData<HSV>
 ): number[] => {
   // Inisialisasi feature vector dengan panjang 8x3x3 = 72
   const queryFeatureVector = new Array(72).fill(0);
-  for (let i = 0; i < queryImageHSV.height; i++) {
-    for (let j = 0; j < queryImageHSV.width; j++) {
-      const [h, s, v] = queryImageHSV.matrix[i][j];
+  for (let i = 0; i < imageDataHSV.height; i++) {
+    for (let j = 0; j < imageDataHSV.width; j++) {
+      const [h, s, v] = imageDataHSV.matrix[i][j];
       // H
       // 0 => 316, 360
       // 1 => 1, 25
@@ -135,14 +141,9 @@ export const getSimiliarity = (A: number[], B: number[]): number => {
   return sim;
 };
 
-export const convertFileToRGBMatrix = async (
-  file: File
+export const convertBufferToRGBMatrix = async (
+  buffer: Buffer
 ): Promise<ImageData<RGB>> => {
-  // Convert from file to buffer
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
-
   // Convert file to raw image data
   const { data, info } = await sharp(buffer)
     .raw()
@@ -182,14 +183,18 @@ export const convertFileToRGBMatrix = async (
   return imageData;
 };
 
-export const convertFileToHSVMatrix = async (
+export const convertFileToRGBMatrix = async (
   file: File
-): Promise<ImageData<HSV>> => {
+): Promise<ImageData<RGB>> => {
   // Convert from file to buffer
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
+  const buffer = await convertFileToBuffer(file);
 
+  return await convertBufferToRGBMatrix(buffer);
+};
+
+export const convertBufferToHSVMatrix = async (
+  buffer: Buffer
+): Promise<ImageData<HSV>> => {
   // Convert file to raw image data
   const { data, info } = await sharp(buffer)
     .raw()
@@ -227,6 +232,15 @@ export const convertFileToHSVMatrix = async (
   return imageData;
 };
 
+export const convertFileToHSVMatrix = async (
+  file: File
+): Promise<ImageData<HSV>> => {
+  // Convert from file to buffer
+  const buffer = await convertFileToBuffer(file);
+
+  return await convertBufferToHSVMatrix(buffer);
+};
+
 export const convertRGBToHSV = (rgb: RGB): HSV => {
   const [r, g, b] = rgb;
 
@@ -259,4 +273,18 @@ export const convertRGBToHSV = (rgb: RGB): HSV => {
   let v = cMax;
 
   return [h, s, v];
+};
+
+export const convertFileToBuffer = async (file: File): Promise<Buffer> => {
+  const blob = new Blob([file]);
+  const arrBuff = await blob.arrayBuffer();
+  const buffer = Buffer.from(arrBuff);
+
+  return buffer;
+};
+
+export const convertFileToBase64 = async (file: File): Promise<string> => {
+  const buffer = await convertFileToBuffer(file);
+
+  return buffer.toString("base64");
 };

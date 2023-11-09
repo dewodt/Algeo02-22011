@@ -1,3 +1,4 @@
+import { type Metadata } from "next";
 import Link from "next/link";
 import {
   Card,
@@ -7,6 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { HardDriveUpload, Globe } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Search Method Menu | HBD Lens",
+  description: "Reverse image.",
+};
 
 const SearchMenuPage = () => {
   const methods = [

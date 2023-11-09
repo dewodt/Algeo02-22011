@@ -1,8 +1,8 @@
 import { type Metadata } from "next";
-import SearchByUploadForm from "./search-by-upload-form";
+import SearchByScrapeForm from "./search-by-scrape-form";
 
 export const metadata: Metadata = {
-  title: "Search By Upload Data Set | HBD Lens",
+  title: "Search By Scrape Data Set | HBD Lens",
   description: "Reverse image.",
 };
 
@@ -12,11 +12,11 @@ const SearchPage = () => {
       <section className="flex w-full flex-col gap-5 lg:max-w-4xl lg:gap-10">
         {/* Title */}
         <h1 className="text-center text-3xl font-bold lg:text-4xl">
-          Reverse Image Search By Upload Data Set
+          Reverse Image Search by Scrape Data Set
         </h1>
 
         {/* Form & Client Component */}
-        <SearchByUploadForm />
+        <SearchByScrapeForm />
       </section>
     </main>
   );

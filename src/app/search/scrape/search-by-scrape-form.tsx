@@ -18,16 +18,16 @@ import {
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SearchByUploadFormSchema } from "@/lib/zod";
-import type { ImageResults, ImageResultsState } from "@/types/image";
-import type { SuccessSearchByUploadResponse, ErrorResponse } from "@/types/api";
-import { FileText, Loader } from "lucide-react";
+import { SearchByScrapeFormSchema } from "@/lib/zod";
+import { ImageResultsState } from "@/types/image";
+import { ErrorResponse, SuccessSearchByScrapeResponse } from "@/types/api";
 import { PDFDownloadLink } from "@react-pdf/renderer";
+import { FileText, Loader } from "lucide-react";
 import ResultGallery from "../result-gallery";
 import ResultPDF from "../result-pdf";
 
 // Search form & shows result client component
-const SearchByUploadForm = () => {
+const SearchByScrapeForm = () => {
   // Image results state
   // Initial state: undefined
   // No results state: []
@@ -40,8 +40,8 @@ const SearchByUploadForm = () => {
   // Final state: number
   const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
 
-  const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
-    resolver: zodResolver(SearchByUploadFormSchema),
+  const form = useForm<z.infer<typeof SearchByScrapeFormSchema>>({
+    resolver: zodResolver(SearchByScrapeFormSchema),
     defaultValues: {
       isTexture: false,
     },
@@ -56,7 +56,7 @@ const SearchByUploadForm = () => {
     : undefined;
 
   // Submit handler
-  const onSubmit = async (data: z.infer<typeof SearchByUploadFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof SearchByScrapeFormSchema>) => {
     // Toast
     toast({
       title: "Loading...",
@@ -75,17 +75,14 @@ const SearchByUploadForm = () => {
     const formData = new FormData();
     formData.append("imageInput", data.imageInput);
     formData.append("isTexture", data.isTexture.toString());
-    const imageDataSet = Array.from(data.imageDataSet);
-    imageDataSet.forEach((image) => {
-      formData.append("imageDataSet", image);
-    });
+    formData.append("scrapeUrl", data.scrapeUrl);
 
     // Fetch to end point to be processed
-    const res = await fetch("/api/search/upload/", {
+    const res = await fetch("/api/search/scrape/", {
       body: formData,
       method: "POST",
     });
-    const resJSON: SuccessSearchByUploadResponse | ErrorResponse =
+    const resJSON: SuccessSearchByScrapeResponse | ErrorResponse =
       await res.json();
 
     if (!res.ok) {
@@ -101,18 +98,8 @@ const SearchByUploadForm = () => {
       return;
     }
 
-    // Create image results mapping
-    const successJSON = resJSON as SuccessSearchByUploadResponse;
-    const imageResults: ImageResults = successJSON.map((result) => {
-      const { index, similarity } = result;
-      const imageFile = imageDataSet[index];
-      const imageSrc = URL.createObjectURL(imageFile);
-
-      return {
-        imageSrc,
-        similarity,
-      };
-    });
+    // // Create image results mapping
+    const imageResults = resJSON as SuccessSearchByScrapeResponse;
 
     // Stop timer
     const timeEnd = Date.now() / 1000;
@@ -263,22 +250,16 @@ const SearchByUploadForm = () => {
 
         <Separator />
 
-        {/* Image Dataset Input */}
+        {/* Image Dataset Scrape */}
         <FormField
           control={control}
-          name="imageDataSet"
-          render={({ field: { onChange }, ...field }) => (
+          name="scrapeUrl"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Image Dataset</FormLabel>
+              <FormLabel>Image Data Set Link</FormLabel>
               <FormControl>
                 <Input
-                  type="file"
-                  accept="image/*"
-                  placeholder="Upload Image Dataset"
-                  // @ts-expect-error
-                  webkitdirectory=""
-                  directory=""
-                  onChange={(e) => onChange(e.target.files!)}
+                  placeholder="Enter image data set link to scrape"
                   {...field}
                 />
               </FormControl>
@@ -291,4 +272,4 @@ const SearchByUploadForm = () => {
   );
 };
 
-export default SearchByUploadForm;
+export default SearchByScrapeForm;
