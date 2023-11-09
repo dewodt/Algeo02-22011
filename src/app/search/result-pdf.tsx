@@ -1,4 +1,4 @@
-import { type SearchByUploadImageResults } from "@/types/image";
+import { type ImageResults } from "@/types/image";
 import {
   Document,
   Page,
@@ -79,11 +79,13 @@ const styles = StyleSheet.create({
 });
 
 // Create Document Component
-const SearchByUploadPDF = ({
+const ResultPDF = ({
+  imageInput,
   imageResults,
   timeTaken,
 }: {
-  imageResults: SearchByUploadImageResults;
+  imageInput: File;
+  imageResults: ImageResults;
   timeTaken: number;
 }) => (
   <Document
@@ -96,6 +98,10 @@ const SearchByUploadPDF = ({
       {/* Title */}
       <Text style={styles.h1}>Reverse Image Search Result</Text>
 
+      {/* Image Input */}
+      {/* ... */}
+
+      {/* Image Results */}
       {/* Results count & time */}
       <Text style={styles.text}>
         {imageResults.length} results in {timeTaken.toFixed(2)} seconds
@@ -104,11 +110,10 @@ const SearchByUploadPDF = ({
       {/* Results images */}
       <View style={styles.resultsSection}>
         {imageResults.map((image, idx) => {
-          const url = URL.createObjectURL(image.image);
           return (
             <View key={idx} style={styles.imageSection}>
               {/* eslint-disable-next-line */}
-              <Image src={url} style={styles.image} />
+              <Image src={image.imageSrc} style={styles.image} />
               <Text style={styles.imageLabel}>
                 {(image.similarity * 100).toFixed(2)}%
               </Text>
@@ -120,4 +125,4 @@ const SearchByUploadPDF = ({
   </Document>
 );
 
-export default SearchByUploadPDF;
+export default ResultPDF;

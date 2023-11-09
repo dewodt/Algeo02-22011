@@ -19,12 +19,12 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByScrapeFormSchema } from "@/lib/zod";
-import { SearchByScrapeImageResultsState } from "@/types/image";
+import { ImageResultsState } from "@/types/image";
 import { ErrorResponse, SuccessSearchByScrapeResponse } from "@/types/api";
-import SearchByScrapeGallery from "./search-by-scrape-gallery";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import SearchByScrapePDF from "./search-by-scrape-pdf";
 import { FileText, Loader } from "lucide-react";
+import ResultGallery from "../result-gallery";
+import ResultPDF from "../result-pdf";
 
 // Search form & shows result client component
 const SearchByScrapeForm = () => {
@@ -33,7 +33,7 @@ const SearchByScrapeForm = () => {
   // No results state: []
   // Has results state: [Images, ...]
   const [imageResults, setImageResults] =
-    useState<SearchByScrapeImageResultsState>(undefined);
+    useState<ImageResultsState>(undefined);
 
   // Time taken state
   // Initial state: undefined
@@ -207,14 +207,15 @@ const SearchByScrapeForm = () => {
 
               {/* Results Images + Pagination */}
               {imageResults.length > 0 && (
-                <SearchByScrapeGallery imageResults={imageResults} />
+                <ResultGallery imageResults={imageResults} />
               )}
 
               {/* Convert result to pdf button */}
               <PDFDownloadLink
                 className="w-full self-center sm:max-w-xs"
                 document={
-                  <SearchByScrapePDF
+                  <ResultPDF
+                    imageInput={imageInput}
                     imageResults={imageResults}
                     timeTaken={timeTaken!}
                   />

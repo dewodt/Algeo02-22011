@@ -19,15 +19,12 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
-import type {
-  SearchByUploadImageResults,
-  SearchByUploadImageResultsState,
-} from "@/types/image";
+import type { ImageResults, ImageResultsState } from "@/types/image";
 import type { SuccessSearchByUploadResponse, ErrorResponse } from "@/types/api";
-import SearchByUploadGallery from "./search-by-upload-gallery";
 import { FileText, Loader } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import SearchByUploadPDF from "./search-by-upload-pdf";
+import ResultGallery from "../result-gallery";
+import ResultPDF from "../result-pdf";
 
 // Search form & shows result client component
 const SearchByUploadForm = () => {
@@ -36,7 +33,7 @@ const SearchByUploadForm = () => {
   // No results state: []
   // Has results state: [Images, ...]
   const [imageResults, setImageResults] =
-    useState<SearchByUploadImageResultsState>(undefined);
+    useState<ImageResultsState>(undefined);
 
   // Time taken state
   // Initial state: undefined
@@ -106,15 +103,16 @@ const SearchByUploadForm = () => {
 
     // Create image results mapping
     const successJSON = resJSON as SuccessSearchByUploadResponse;
-    const imageResults: SearchByUploadImageResults = successJSON.map(
-      (result) => {
-        const { index, similarity } = result;
-        return {
-          image: imageDataSet[index],
-          similarity: similarity,
-        };
-      }
-    );
+    const imageResults: ImageResults = successJSON.map((result) => {
+      const { index, similarity } = result;
+      const imageFile = imageDataSet[index];
+      const imageSrc = URL.createObjectURL(imageFile);
+
+      return {
+        imageSrc,
+        similarity,
+      };
+    });
 
     // Stop timer
     const timeEnd = Date.now() / 1000;
@@ -222,14 +220,15 @@ const SearchByUploadForm = () => {
 
               {/* Results Images + Pagination */}
               {imageResults.length > 0 && (
-                <SearchByUploadGallery imageResults={imageResults} />
+                <ResultGallery imageResults={imageResults} />
               )}
 
               {/* Convert result to pdf button */}
               <PDFDownloadLink
                 className="w-full self-center sm:max-w-xs"
                 document={
-                  <SearchByUploadPDF
+                  <ResultPDF
+                    imageInput={imageInput}
                     imageResults={imageResults}
                     timeTaken={timeTaken!}
                   />

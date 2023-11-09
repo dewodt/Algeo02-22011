@@ -187,9 +187,7 @@ export const convertFileToRGBMatrix = async (
   file: File
 ): Promise<ImageData<RGB>> => {
   // Convert from file to buffer
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
+  const buffer = await convertFileToBuffer(file);
 
   return await convertBufferToRGBMatrix(buffer);
 };
@@ -238,9 +236,7 @@ export const convertFileToHSVMatrix = async (
   file: File
 ): Promise<ImageData<HSV>> => {
   // Convert from file to buffer
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
+  const buffer = await convertFileToBuffer(file);
 
   return await convertBufferToHSVMatrix(buffer);
 };
@@ -277,4 +273,18 @@ export const convertRGBToHSV = (rgb: RGB): HSV => {
   let v = cMax;
 
   return [h, s, v];
+};
+
+export const convertFileToBuffer = async (file: File): Promise<Buffer> => {
+  const blob = new Blob([file]);
+  const arrBuff = await blob.arrayBuffer();
+  const buffer = Buffer.from(arrBuff);
+
+  return buffer;
+};
+
+export const convertFileToBase64 = async (file: File): Promise<string> => {
+  const buffer = await convertFileToBuffer(file);
+
+  return buffer.toString("base64");
 };

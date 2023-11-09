@@ -57,20 +57,25 @@ export const POST = async (req: NextRequest) => {
   const processedImages = await Promise.all(
     imageUrls.map(async (url) => {
       const res = await fetch(url);
+
       const arrBuff = await res.arrayBuffer();
       const imageBuffer = Buffer.from(arrBuff);
       const contentType = res.headers.get("content-type") as string;
       const imageBase64 = imageBuffer.toString("base64");
+      const imageSrc = `data:${contentType};base64,${imageBase64}`;
+
       return {
         imageBuffer,
-        contentType,
-        imageBase64,
+        imageSrc,
       };
     })
   );
 
   // Get array of image buffers
   const imageBuffers = processedImages.map((image) => image.imageBuffer);
+
+  // Get image src
+  const imageSrcs = processedImages.map((image) => image.imageSrc);
 
   if (isTexture) {
     // Solve by texture
@@ -82,11 +87,10 @@ export const POST = async (req: NextRequest) => {
     const imageResults: SuccessSearchByScrapeResponse = CBIRColorResult.map(
       (result) => {
         const { index, similarity } = result;
-        const { imageBase64, contentType } = processedImages[index];
+        const imageSrc = imageSrcs[index];
 
         return {
-          imageBase64,
-          contentType,
+          imageSrc,
           similarity,
         };
       }

@@ -8,8 +8,7 @@ export type SuccessSearchByUploadResponse = {
 // Data set is not available in client when scraped, so need to transmit image data from the server.
 // Don't send image url links scrape, because of CORS. So send base 64 image instead. Also send similarity with the compared image.
 export type SuccessSearchByScrapeResponse = {
-  imageBase64: string;
-  contentType: string;
+  imageSrc: string;
   similarity: number;
 }[];
 

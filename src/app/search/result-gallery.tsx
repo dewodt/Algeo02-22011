@@ -1,16 +1,12 @@
 "use client";
 
-import { SearchByScrapeImageResults } from "@/types/image";
+import { ImageResults } from "@/types/image";
 import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Pagination from "@/components/pagination";
 
-const SearchByScrapeGallery = ({
-  imageResults,
-}: {
-  imageResults: SearchByScrapeImageResults;
-}) => {
+const ResultGallery = ({ imageResults }: { imageResults: ImageResults }) => {
   // Count total result & total pages
   const countResult = imageResults.length;
   const countPage = Math.ceil(countResult / 6);
@@ -29,7 +25,7 @@ const SearchByScrapeGallery = ({
             <div key={idx} className="relative">
               <Image
                 className="aspect-[5/3] w-full rounded-lg border-2 border-border object-cover object-center"
-                src={`data:${image.contentType};base64,${image.imageBase64}`}
+                src={image.imageSrc}
                 alt={`Image result #${idx + 1}`}
                 width={100}
                 height={100}
@@ -48,4 +44,4 @@ const SearchByScrapeGallery = ({
   );
 };
 
-export default SearchByScrapeGallery;
+export default ResultGallery;
