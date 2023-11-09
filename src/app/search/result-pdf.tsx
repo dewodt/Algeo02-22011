@@ -43,32 +43,49 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     flexDirection: "column",
     alignItems: "center",
-    gap: 16,
+    gap: 24,
   },
   h1: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
   },
+  h2: {
+    fontSize: 18,
+    fontWeight: "semibold",
+    textAlign: "center",
+  },
   text: {
     fontSize: 14,
   },
-  resultsSection: {
+  inputSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+  },
+  resultSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+  },
+  imagesSection: {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-evenly",
     gap: 16,
   },
-  imageSection: {
+  imageAndLabelSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     gap: 4,
   },
   image: {
-    width: 150,
-    height: 150,
+    width: 225,
+    height: 135,
     objectFit: "cover",
     objectPosition: "center",
   },
@@ -94,32 +111,41 @@ const ResultPDF = ({
     subject="Image Results"
     keywords="HBD Lens, Reverse Image Results, PDF"
   >
-    <Page size="A4" orientation="portrait" style={styles.page}>
+    <Page size="A3" orientation="portrait" style={styles.page}>
       {/* Title */}
       <Text style={styles.h1}>Reverse Image Search Result</Text>
 
       {/* Image Input */}
-      {/* ... */}
+      <View style={styles.inputSection}>
+        <Text style={styles.h2}>Image Input:</Text>
+        {/* eslint-disable-next-line */}
+        <Image src={URL.createObjectURL(imageInput)} style={styles.image} />
+      </View>
 
       {/* Image Results */}
-      {/* Results count & time */}
-      <Text style={styles.text}>
-        {imageResults.length} results in {timeTaken.toFixed(2)} seconds
-      </Text>
+      <View style={styles.resultSection}>
+        {/* Results Title */}
+        <Text style={styles.h2}>Results:</Text>
 
-      {/* Results images */}
-      <View style={styles.resultsSection}>
-        {imageResults.map((image, idx) => {
-          return (
-            <View key={idx} style={styles.imageSection}>
-              {/* eslint-disable-next-line */}
-              <Image src={image.imageSrc} style={styles.image} />
-              <Text style={styles.imageLabel}>
-                {(image.similarity * 100).toFixed(2)}%
-              </Text>
-            </View>
-          );
-        })}
+        {/* Results count & time */}
+        <Text style={styles.text}>
+          {imageResults.length} results in {timeTaken.toFixed(2)} seconds
+        </Text>
+
+        {/* Results images */}
+        <View style={styles.imagesSection}>
+          {imageResults.map((image, idx) => {
+            return (
+              <View key={idx} style={styles.imageAndLabelSection}>
+                {/* eslint-disable-next-line */}
+                <Image src={image.imageSrc} style={styles.image} />
+                <Text style={styles.imageLabel}>
+                  {(image.similarity * 100).toFixed(2)}%
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
     </Page>
   </Document>
