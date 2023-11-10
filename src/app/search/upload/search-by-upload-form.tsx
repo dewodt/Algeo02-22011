@@ -21,7 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
 import type { ImageResults, ImageResultsState } from "@/types/image";
 import type { SuccessSearchByUploadResponse, ErrorResponse } from "@/types/api";
-import { FileText, Loader } from "lucide-react";
+import { FileText, Loader2, Search } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultGallery from "../result-gallery";
 import ResultPDF from "../result-pdf";
@@ -40,6 +40,12 @@ const SearchByUploadForm = () => {
   // Final state: number
   const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
 
+  // Last valid query image state
+  const [lastValidInputImageSrc, setLastValidInputImageSrc] = useState<
+    string | undefined
+  >();
+
+  // Form state
   const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
     resolver: zodResolver(SearchByUploadFormSchema),
     defaultValues: {
@@ -50,6 +56,7 @@ const SearchByUploadForm = () => {
   const { isSubmitting } = formState;
 
   // Image input state
+  // (Anything that the user inputs, even if it's invalid)
   const imageInput = watch("imageInput");
   const imageInputURL = imageInput
     ? URL.createObjectURL(imageInput)
@@ -67,6 +74,7 @@ const SearchByUploadForm = () => {
     // Reset image results & time taken
     setImageResults(undefined);
     setTimeTaken(undefined);
+    setLastValidInputImageSrc(undefined);
 
     // Start timer
     const timeStart = Date.now() / 1000;
@@ -120,6 +128,7 @@ const SearchByUploadForm = () => {
     // Set image results & time taken
     setImageResults(imageResults);
     setTimeTaken(timeEnd - timeStart);
+    setLastValidInputImageSrc(URL.createObjectURL(data.imageInput));
 
     // Toast success
     toast({
@@ -198,14 +207,24 @@ const SearchByUploadForm = () => {
 
               {/* Search / submit button */}
               <Button size="lg" type="submit" disabled={isSubmitting}>
-                Search
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 " />
+                    Search
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </div>
 
         {/* Image results */}
-        {imageResults && (
+        {imageResults && timeTaken && lastValidInputImageSrc && (
           <>
             <Separator orientation="horizontal" />
             <div className="flex flex-col gap-4">
@@ -228,9 +247,9 @@ const SearchByUploadForm = () => {
                 className="w-full self-center sm:max-w-xs"
                 document={
                   <ResultPDF
-                    imageInput={imageInput}
+                    imageInputSrc={lastValidInputImageSrc}
                     imageResults={imageResults}
-                    timeTaken={timeTaken!}
+                    timeTaken={timeTaken}
                   />
                 }
                 fileName="Reverse Image Result.pdf"
@@ -245,7 +264,7 @@ const SearchByUploadForm = () => {
                   >
                     {loading ? (
                       <>
-                        <Loader className="mr-2 animate-spin" />
+                        <Loader2 className="mr-2 animate-spin" />
                         Loading...
                       </>
                     ) : (

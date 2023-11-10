@@ -22,7 +22,7 @@ import { SearchByScrapeFormSchema } from "@/lib/zod";
 import { ImageResultsState } from "@/types/image";
 import { ErrorResponse, SuccessSearchByScrapeResponse } from "@/types/api";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { FileText, Loader } from "lucide-react";
+import { FileText, Loader2, Search } from "lucide-react";
 import ResultGallery from "../result-gallery";
 import ResultPDF from "../result-pdf";
 
@@ -40,6 +40,12 @@ const SearchByScrapeForm = () => {
   // Final state: number
   const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
 
+  // Last valid query image state
+  const [lastValidInputImageSrc, setLastValidInputImageSrc] = useState<
+    string | undefined
+  >();
+
+  // Form state
   const form = useForm<z.infer<typeof SearchByScrapeFormSchema>>({
     resolver: zodResolver(SearchByScrapeFormSchema),
     defaultValues: {
@@ -50,6 +56,7 @@ const SearchByScrapeForm = () => {
   const { isSubmitting } = formState;
 
   // Image input state
+  // (Anything that the user inputs, even if it's invalid)
   const imageInput = watch("imageInput");
   const imageInputURL = imageInput
     ? URL.createObjectURL(imageInput)
@@ -67,6 +74,7 @@ const SearchByScrapeForm = () => {
     // Reset image results & time taken
     setImageResults(undefined);
     setTimeTaken(undefined);
+    setLastValidInputImageSrc(undefined);
 
     // Start timer
     const timeStart = Date.now() / 1000;
@@ -107,6 +115,7 @@ const SearchByScrapeForm = () => {
     // Set image results & time taken
     setImageResults(imageResults);
     setTimeTaken(timeEnd - timeStart);
+    setLastValidInputImageSrc(URL.createObjectURL(data.imageInput));
 
     // Toast success
     toast({
@@ -185,14 +194,24 @@ const SearchByScrapeForm = () => {
 
               {/* Search / submit button */}
               <Button size="lg" type="submit" disabled={isSubmitting}>
-                Search
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 " />
+                    Search
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </div>
 
         {/* Image results */}
-        {imageResults && (
+        {imageResults && timeTaken && lastValidInputImageSrc && (
           <>
             <Separator orientation="horizontal" />
             <div className="flex flex-col gap-4">
@@ -215,9 +234,9 @@ const SearchByScrapeForm = () => {
                 className="w-full self-center sm:max-w-xs"
                 document={
                   <ResultPDF
-                    imageInput={imageInput}
+                    imageInputSrc={lastValidInputImageSrc}
                     imageResults={imageResults}
-                    timeTaken={timeTaken!}
+                    timeTaken={timeTaken}
                   />
                 }
                 fileName="Reverse Image Result.pdf"
@@ -232,7 +251,7 @@ const SearchByScrapeForm = () => {
                   >
                     {loading ? (
                       <>
-                        <Loader className="mr-2 animate-spin" />
+                        <Loader2 className="mr-2 animate-spin" />
                         Loading...
                       </>
                     ) : (

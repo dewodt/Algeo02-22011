@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
 
 // Create Document Component
 const ResultPDF = ({
-  imageInput,
+  imageInputSrc,
   imageResults,
   timeTaken,
 }: {
-  imageInput: File;
+  imageInputSrc: string;
   imageResults: ImageResults;
   timeTaken: number;
 }) => (
@@ -119,7 +119,7 @@ const ResultPDF = ({
       <View style={styles.inputSection}>
         <Text style={styles.h2}>Image Input:</Text>
         {/* eslint-disable-next-line */}
-        <Image src={URL.createObjectURL(imageInput)} style={styles.image} />
+        <Image src={imageInputSrc} style={styles.image} />
       </View>
 
       {/* Image Results */}
