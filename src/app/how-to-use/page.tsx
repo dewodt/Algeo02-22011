@@ -17,7 +17,7 @@ const HowToUse = () => {
 
   return (
     <main className="flex flex-auto flex-col items-center justify-center px-6 py-16 sm:p-12 lg:p-24">
-      <section className="flex w-full flex-col gap-6 lg:max-w-3xl lg:gap-8">
+      <section className="flex w-full flex-col gap-4 lg:max-w-3xl lg:gap-6">
         {/* Title */}
         <h1 className="text-center text-3xl font-bold lg:text-4xl">
           How To Use HBD Lens
