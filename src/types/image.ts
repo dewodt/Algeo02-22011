@@ -6,6 +6,8 @@ export type Gray = number;
 
 export type ImageMatrix<T> = T[][];
 
+export type GLCMatrix = number[][];
+
 export interface ImageData<T> {
   width: number;
   height: number;

@@ -1,43 +1,102 @@
 import sharp from "sharp";
-import type { Gray, RGB, HSV, ImageMatrix, ImageData } from "@/types/image";
+import type {
+  Gray,
+  RGB,
+  HSV,
+  ImageMatrix,
+  ImageData,
+  CBIRCalculationResult,
+  GLCMatrix,
+} from "@/types/image";
+import { getNormalizeMatrix } from "./matrix";
 
 export const solveCBIR = async (
   imageQuery: File,
-  imageDataSet: Buffer[] | File[]
+  imageDataSet: Buffer[] | File[],
   // Upload data set pass File[]
   // Scrape data set pass Buffer[]
   isTexture: boolean
 ) => {
-  let inputImageFeatureVector: number[];
   if (isTexture) {
-    // Convert to co-occurance Matrix
-    const inputImageData = await convertFileToCoMatrix(imageQuery);
-
-    // Get texture vector
-    inputImageFeatureVector =
-      getImageTextureVector(inputImageData);
+    return await solveCBIRTexture(imageQuery, imageDataSet);
   } else {
-    // Convert to hsv
-    const inputImageData = await convertFileToHSVMatrix(imageQuery);
-  
-    // Get feature vector
-    inputImageFeatureVector =
-      getImageHSVGlobalHistogramFeatureVector(inputImageData);
+    return await solveCBIRColor(imageQuery, imageDataSet);
   }
+};
+
+export const solveCBIRTexture = async (
+  imageQuery: File,
+  imageDataSet: Buffer[] | File[]
+  // Upload data set pass File[]
+  // Scrape data set pass Buffer[]
+): Promise<CBIRCalculationResult> => {
+  // Convert to co-occurance Matrix
+  const inputImageGrayData = await convertFileToGrayMatrix(imageQuery);
+
+  // Get normalized GLCM
+  const inputImageNormalizedGLCM = getNormalizedGLCM(inputImageGrayData);
+
+  // Get input image texture vector
+  const inputImageFeatureVector = getImageTextureFeatureVector(
+    inputImageNormalizedGLCM
+  );
 
   // Compare to dataset
   const compareResult = await Promise.all(
     imageDataSet.map(async (image, index) => {
-      let dataSetImageFeatureVector: number[];
-      if (isTexture) {
-        // Convert to co-occurance Matrix
-        const dataSetImageData = await convertFileToCoMatrix(imageQuery);
-    
-        // Get texture vector
-        dataSetImageFeatureVector =
-          getImageTextureVector(dataSetImageData);
-      } else {
-        // Convert to hsv
+      // Convert to gray matrix
+      const dataSetImageData = await convertFileToGrayMatrix(image as File);
+
+      // Get normalized glcm
+      const dataSetImageFeatureVector = getNormalizedGLCM(dataSetImageData);
+
+      // Get feature vector
+      const dataSetFeatureVector = getImageTextureFeatureVector(
+        dataSetImageFeatureVector
+      );
+
+      // Check similarity
+      const similarity = getSimiliarity(
+        inputImageFeatureVector,
+        dataSetFeatureVector
+      );
+
+      // To reduce load in data transmission, only return the index in the original dataset array.
+      return {
+        index,
+        similarity,
+      };
+    })
+  );
+
+  // Filter out similarity
+  const filteredCompareResult = compareResult.filter(
+    (result) => result.similarity > 0.6
+  );
+
+  // Sort by similarity
+  filteredCompareResult.sort((a, b) => b.similarity - a.similarity);
+
+  return filteredCompareResult;
+};
+
+export const solveCBIRColor = async (
+  imageQuery: File,
+  imageDataSet: Buffer[] | File[]
+  // Upload data set pass File[]
+  // Scrape data set pass Buffer[]
+): Promise<CBIRCalculationResult> => {
+  // Convert input image (file) to hsv
+  const inputImageData = await convertFileToHSVMatrix(imageQuery);
+
+  // Get feature vector
+  const inputImageFeatureVector =
+    getImageHSVGlobalHistogramFeatureVector(inputImageData);
+
+  // Compare to dataset
+  const compareResult = await Promise.all(
+    imageDataSet.map(async (image, index) => {
+      // Convert to hsv
       const dataSetImageData =
         image instanceof File
           ? await convertFileToHSVMatrix(image)
@@ -46,8 +105,7 @@ export const solveCBIR = async (
       // Get feature vector
       const dataSetImageFeatureVector =
         getImageHSVGlobalHistogramFeatureVector(dataSetImageData);
-      }
-     
+
       // Check similarity
       const similarity = getSimiliarity(
         inputImageFeatureVector,
@@ -143,25 +201,40 @@ export const getImageHSVGlobalHistogramFeatureVector = (
   return queryFeatureVector;
 };
 
-export const getImageTextureVector = (coMatrix: ImageMatrix<number>): number[] => {
+export const getImageTextureFeatureVector = (
+  normalizedGLCM: GLCMatrix
+): number[] => {
   let contrast = 0;
   let homogeneity = 0;
   let entropy = 0;
-  let energy = 0;
+  let ASM = 0;
 
+  // Get feature vector
   for (let i = 0; i < 256; i++) {
     for (let j = 0; j < 256; j++) {
-      contrast += coMatrix[i][j]*(i-j)*(i-j);
-      homogeneity += coMatrix[i][j]/(1 + (i-j)*(i-j));
-      entropy -= coMatrix[i][j]*Math.log(coMatrix[i][j]);
-      energy += Math.pow(coMatrix[i][j], 2);
+      // Contrast
+      contrast += normalizedGLCM[i][j] * (i - j) * (i - j);
+
+      // Homogeneity
+      homogeneity += normalizedGLCM[i][j] / (1 + (i - j) * (i - j));
+
+      // ASM
+      ASM += Math.pow(normalizedGLCM[i][j], 2);
+
+      // Logarithm only valid when > 0
+      if (normalizedGLCM[i][j] > 0) {
+        entropy -= normalizedGLCM[i][j] * Math.log10(normalizedGLCM[i][j]);
+      }
     }
   }
+
+  // energy
+  const energy = Math.sqrt(ASM);
 
   const queryTextureVector: number[] = [contrast, homogeneity, entropy, energy];
 
   return queryTextureVector;
-}
+};
 
 export const getSimiliarity = (A: number[], B: number[]): number => {
   // Precondition: A.length === B.length
@@ -178,8 +251,86 @@ export const getSimiliarity = (A: number[], B: number[]): number => {
   }
 
   const sim = sumAB / (Math.sqrt(sumA2) * Math.sqrt(sumB2));
-
   return sim;
+};
+
+export const getNormalizedGLCM = (
+  grayImageData: ImageData<Gray>
+): GLCMatrix => {
+  // Initialize symmetric matrix
+  const symetricMatrix: GLCMatrix = new Array(256).fill(Array(256).fill(0));
+
+  // Get symmetric co-occurance matrix
+  for (let i = 0; i < grayImageData.height; i++) {
+    for (let j = 0; j < grayImageData.width; j++) {
+      if (j != 0) {
+        const firstGrayElement = grayImageData.matrix[i][j - 1];
+        const secondGrayElement = grayImageData.matrix[i][j];
+
+        symetricMatrix[firstGrayElement][secondGrayElement] += 1;
+        symetricMatrix[secondGrayElement][firstGrayElement] += 1;
+      }
+    }
+  }
+
+  // Normalize, to get GLCM Normalized
+  const normalizedGCLM = getNormalizeMatrix(symetricMatrix);
+
+  return normalizedGCLM;
+};
+
+/* FILE / BUFFER CONVERSION */
+export const convertFileToGrayMatrix = async (
+  file: File
+): Promise<ImageData<Gray>> => {
+  // Convert from file to buffer
+  const buffer = await convertFileToBuffer(file);
+
+  // Convert file to raw image data
+  return await convertBufferGrayMatrix(buffer);
+};
+
+export const convertBufferGrayMatrix = async (
+  buffer: Buffer
+): Promise<ImageData<Gray>> => {
+  // Convert file to raw image data
+  const { data, info } = await sharp(buffer)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const pixelArray = new Uint8ClampedArray(data.buffer);
+
+  const channels = info.channels;
+  const width = info.width;
+  const height = info.height;
+
+  // Get Gray matrix
+  const grayMatrix: ImageMatrix<Gray> = [];
+
+  for (let i = 0; i < height; i++) {
+    const row: Gray[] = [];
+    for (let j = 0; j < width; j++) {
+      const index = (i * width + j) * channels;
+
+      const r = pixelArray[index];
+      const g = pixelArray[index + 1];
+      const b = pixelArray[index + 2];
+
+      const rgbPixel: RGB = [r, g, b];
+      const grayPixel: Gray = convertRGBtoGray(rgbPixel);
+
+      row.push(grayPixel);
+    }
+    grayMatrix.push(row);
+  }
+
+  const imageData: ImageData<Gray> = {
+    width,
+    height,
+    matrix: grayMatrix,
+  };
+
+  return imageData;
 };
 
 export const convertBufferToRGBMatrix = async (
@@ -222,50 +373,6 @@ export const convertBufferToRGBMatrix = async (
   };
 
   return imageData;
-};
-
-export const convertFileToCoMatrix = async (
-  file: File
-): Promise<ImageMatrix<number>> => {
-  // Convert from file to buffer
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
-
-  // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  const pixelArray = new Uint8ClampedArray(data.buffer);
-
-  const channels = info.channels;
-  const width = info.width;
-  const height = info.height;
-
-  // Get Co-occurance Matrix
-  const normalizedOoc = 1/(height*(width-1));
-  const coMatrix: ImageMatrix<number> = new Array(256).fill(Array(256).fill(0));
-
-  for (let i = 0; i < height; i++) {
-    const rowGray: Gray[] = [];
-    for (let j = 0; j < width; j++) {
-      const index = (i * width + j) * channels;
-
-      const r = pixelArray[index];
-      const g = pixelArray[index + 1];
-      const b = pixelArray[index + 2];
-
-      const pixel: number = Math.round(0.29*r + 0.587*g + 0.114*b);
-      if (j != 0) {
-        coMatrix[rowGray[i-1]][rowGray[i]] += normalizedOoc;
-        coMatrix[rowGray[i]][rowGray[i-1]] += normalizedOoc;
-      }
-      rowGray.push(pixel);
-    }
-  }
-
-  return coMatrix;
 };
 
 export const convertFileToRGBMatrix = async (
@@ -324,6 +431,12 @@ export const convertFileToHSVMatrix = async (
   const buffer = await convertFileToBuffer(file);
 
   return await convertBufferToHSVMatrix(buffer);
+};
+
+export const convertRGBtoGray = (rgb: RGB): Gray => {
+  const [r, g, b] = rgb;
+
+  return Math.round(0.29 * r + 0.587 * g + 0.114 * b);
 };
 
 export const convertRGBToHSV = (rgb: RGB): HSV => {

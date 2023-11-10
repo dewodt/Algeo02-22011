@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { solveCBIR } from "@/lib/cbir";
 import { SearchByUploadHttpSchema } from "@/lib/zod";
-import { SuccessSearchByUploadResponse } from "@/types/api";
 
 export const POST = async (req: NextRequest) => {
   // Get data from form data
