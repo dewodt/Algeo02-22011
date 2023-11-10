@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -19,13 +19,14 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchByUploadFormSchema } from "@/lib/zod";
-import type { ImageResults, ImageResultsState } from "@/types/image";
+import type { ImageResults } from "@/types/image";
 import type { SuccessSearchByUploadResponse, ErrorResponse } from "@/types/api";
-import { FileText, Loader2, Search } from "lucide-react";
+import { Camera, FileText, Loader2, Search } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultGallery from "../result-gallery";
 import ResultPDF from "../result-pdf";
 import { LastValidSearchState } from "@/types/hooks";
+import Webcam from "react-webcam";
 
 // Search form & shows result client component
 const SearchByUploadForm = () => {
@@ -42,8 +43,53 @@ const SearchByUploadForm = () => {
       isTexture: false,
     },
   });
-  const { control, handleSubmit, watch, formState } = form;
+  const { control, handleSubmit, watch, formState, setValue } = form;
   const { isSubmitting } = formState;
+
+  // Webcam ref
+  const [isCameraCapturing, setIsCameraCapturing] = useState<boolean>(false);
+  const [captureTimeLeft, setCaptureTimeLeft] = useState<number>(10);
+  const webCamRef = useRef<Webcam>(null);
+  const onClickCapture = () => {
+    // Start countdown 10 seconds
+    setIsCameraCapturing(true);
+    setCaptureTimeLeft(10);
+
+    // Countdown 10 seconds
+    const interval = setInterval(() => {
+      if (captureTimeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      setCaptureTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    // Capture after 10 seconds
+    setTimeout(() => {
+      // Get base 64 image
+      const cameraBase64 = webCamRef.current?.getScreenshot();
+
+      if (!cameraBase64) {
+        return;
+      }
+
+      // Convert buffer => file
+      const arr = cameraBase64.split(",");
+      const mime = arr[0].match(/:(.*?);/)![1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const file = new File([u8arr], "camera.jpg", { type: mime });
+
+      // Set image input
+      setValue("imageInput", file);
+      setIsCameraCapturing(false);
+    }, 10000);
+  };
 
   // Image input state
   // (Anything that the user inputs, even if it's invalid)
@@ -137,18 +183,29 @@ const SearchByUploadForm = () => {
         className="flex flex-col gap-6 lg:gap-8"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:gap-6">
-          {/* Shows current inputed image */}
-          {imageInputURL ? (
-            <Image
-              className="aspect-[5/3] w-full rounded-lg border-2 border-border object-cover object-center sm:h-48 sm:w-auto md:h-56 lg:h-64"
-              src={imageInputURL}
-              alt="Input Image"
-              width={320}
-              height={160}
-            />
-          ) : (
-            <div className="aspect-[5/3] w-full rounded-lg border-2 border-border bg-muted sm:h-48 sm:w-auto md:h-56 lg:h-64" />
-          )}
+          {/* Shows current inputed image / webcam */}
+          <div className="aspect-[5/3] w-full rounded-lg border-2 border-border bg-muted sm:h-48 sm:w-auto md:h-56 lg:h-72">
+            {isCameraCapturing ? (
+              <Webcam
+                audio={false}
+                width={320}
+                height={160}
+                screenshotFormat="image/jpeg"
+                className="h-full w-full rounded-lg object-cover object-center"
+                ref={webCamRef}
+              />
+            ) : (
+              imageInputURL && (
+                <Image
+                  className="h-full w-full rounded-lg object-cover object-center"
+                  src={imageInputURL}
+                  alt="Input Image"
+                  width={320}
+                  height={160}
+                />
+              )
+            )}
+          </div>
 
           <div className="flex flex-col gap-4">
             {/* Image Query Input */}
@@ -171,6 +228,39 @@ const SearchByUploadForm = () => {
                 </FormItem>
               )}
             />
+
+            {/* Or */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or Camera (10 s Countdown)
+                </span>
+              </div>
+            </div>
+
+            {/* Camera Button */}
+            <Button
+              size="lg"
+              variant="secondary"
+              type="button"
+              onClick={onClickCapture}
+              disabled={isCameraCapturing || isSubmitting}
+            >
+              {isCameraCapturing ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" />
+                  Capturing in {captureTimeLeft} S...
+                </>
+              ) : (
+                <>
+                  <Camera className="mr-2" />
+                  Capture
+                </>
+              )}
+            </Button>
 
             <div className="flex flex-col gap-4">
               {/* Toggle Color vs Texture */}
@@ -197,7 +287,11 @@ const SearchByUploadForm = () => {
               />
 
               {/* Search / submit button */}
-              <Button size="lg" type="submit" disabled={isSubmitting}>
+              <Button
+                size="lg"
+                type="submit"
+                disabled={isSubmitting || isCameraCapturing}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 animate-spin" />
