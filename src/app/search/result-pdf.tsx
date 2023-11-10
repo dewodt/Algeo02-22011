@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Font,
+  Link,
 } from "@react-pdf/renderer";
 
 Font.register({
@@ -100,10 +101,12 @@ const ResultPDF = ({
   imageInputSrc,
   imageResults,
   timeTaken,
+  dataSetUrl,
 }: {
   imageInputSrc: string;
   imageResults: ImageResults;
   timeTaken: number;
+  dataSetUrl?: string;
 }) => (
   <Document
     title="Reverse Image Results"
@@ -131,6 +134,13 @@ const ResultPDF = ({
         <Text style={styles.text}>
           {imageResults.length} results in {timeTaken.toFixed(2)} seconds
         </Text>
+
+        {/* Data set URL Source (if using scraping) */}
+        {dataSetUrl && (
+          <Link src={dataSetUrl} style={styles.text}>
+            Data Set Source
+          </Link>
+        )}
 
         {/* Results images */}
         <View style={styles.imagesSection}>

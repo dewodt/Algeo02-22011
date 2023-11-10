@@ -45,6 +45,11 @@ const SearchByScrapeForm = () => {
     string | undefined
   >();
 
+  // Last valid scrape url state
+  const [lastValidScrapeUrl, setLastValidScrapeUrl] = useState<
+    string | undefined
+  >();
+
   // Form state
   const form = useForm<z.infer<typeof SearchByScrapeFormSchema>>({
     resolver: zodResolver(SearchByScrapeFormSchema),
@@ -75,6 +80,7 @@ const SearchByScrapeForm = () => {
     setImageResults(undefined);
     setTimeTaken(undefined);
     setLastValidInputImageSrc(undefined);
+    setLastValidScrapeUrl(undefined);
 
     // Start timer
     const timeStart = Date.now() / 1000;
@@ -116,6 +122,7 @@ const SearchByScrapeForm = () => {
     setImageResults(imageResults);
     setTimeTaken(timeEnd - timeStart);
     setLastValidInputImageSrc(URL.createObjectURL(data.imageInput));
+    setLastValidScrapeUrl(data.scrapeUrl);
 
     // Toast success
     toast({
@@ -211,61 +218,65 @@ const SearchByScrapeForm = () => {
         </div>
 
         {/* Image results */}
-        {imageResults && timeTaken && lastValidInputImageSrc && (
-          <>
-            <Separator orientation="horizontal" />
-            <div className="flex flex-col gap-4">
-              {/* Results Title*/}
-              <div className="sm:flex sm:flex-row sm:justify-between">
-                <h3 className="font-bold">Results:</h3>
-                <p className="text-sm">
-                  {imageResults.length} Results in {timeTaken!.toFixed(2)}{" "}
-                  Seconds
-                </p>
-              </div>
+        {imageResults &&
+          timeTaken &&
+          lastValidInputImageSrc &&
+          lastValidScrapeUrl && (
+            <>
+              <Separator orientation="horizontal" />
+              <div className="flex flex-col gap-4">
+                {/* Results Title*/}
+                <div className="sm:flex sm:flex-row sm:justify-between">
+                  <h3 className="font-bold">Results:</h3>
+                  <p className="text-sm">
+                    {imageResults.length} Results in {timeTaken!.toFixed(2)}{" "}
+                    Seconds
+                  </p>
+                </div>
 
-              {/* Results Images + Pagination */}
-              {imageResults.length > 0 && (
-                <ResultGallery imageResults={imageResults} />
-              )}
-
-              {/* Convert result to pdf button */}
-              <PDFDownloadLink
-                className="w-full self-center sm:max-w-xs"
-                document={
-                  <ResultPDF
-                    imageInputSrc={lastValidInputImageSrc}
-                    imageResults={imageResults}
-                    timeTaken={timeTaken}
-                  />
-                }
-                fileName="Reverse Image Result.pdf"
-              >
-                {({ loading }) => (
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    type="button"
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="mr-2" />
-                        Convert to PDF
-                      </>
-                    )}
-                  </Button>
+                {/* Results Images + Pagination */}
+                {imageResults.length > 0 && (
+                  <ResultGallery imageResults={imageResults} />
                 )}
-              </PDFDownloadLink>
-            </div>
-          </>
-        )}
+
+                {/* Convert result to pdf button */}
+                <PDFDownloadLink
+                  className="w-full self-center sm:max-w-xs"
+                  document={
+                    <ResultPDF
+                      imageInputSrc={lastValidInputImageSrc}
+                      imageResults={imageResults}
+                      timeTaken={timeTaken}
+                      dataSetUrl={lastValidScrapeUrl}
+                    />
+                  }
+                  fileName="Reverse Image Result.pdf"
+                >
+                  {({ loading }) => (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      type="button"
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="mr-2" />
+                          Convert to PDF
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              </div>
+            </>
+          )}
 
         <Separator />
 
