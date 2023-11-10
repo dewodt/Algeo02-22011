@@ -10,11 +10,10 @@ import type {
 } from "@/types/image";
 import { getNormalizeMatrix } from "./matrix";
 
+/* Function to Solve CBIR */
 export const solveCBIR = async (
-  imageQuery: File,
-  imageDataSet: Buffer[] | File[],
-  // Upload data set pass File[]
-  // Scrape data set pass Buffer[]
+  imageQuery: Buffer,
+  imageDataSet: Buffer[],
   isTexture: boolean
 ) => {
   if (isTexture) {
@@ -24,14 +23,13 @@ export const solveCBIR = async (
   }
 };
 
+/* Function to Solve CBIR by Texture wise */
 export const solveCBIRTexture = async (
-  imageQuery: File,
-  imageDataSet: Buffer[] | File[]
-  // Upload data set pass File[]
-  // Scrape data set pass Buffer[]
+  imageQuery: Buffer,
+  imageDataSet: Buffer[]
 ): Promise<CBIRCalculationResult> => {
   // Convert to co-occurance Matrix
-  const inputImageGrayData = await convertFileToGrayMatrix(imageQuery);
+  const inputImageGrayData = await convertBufferGrayMatrix(imageQuery);
 
   // Get normalized GLCM
   const inputImageNormalizedGLCM = getNormalizedGLCM(inputImageGrayData);
@@ -45,7 +43,7 @@ export const solveCBIRTexture = async (
   const compareResult = await Promise.all(
     imageDataSet.map(async (image, index) => {
       // Convert to gray matrix
-      const dataSetImageData = await convertFileToGrayMatrix(image as File);
+      const dataSetImageData = await convertBufferGrayMatrix(image);
 
       // Get normalized glcm
       const dataSetImageFeatureVector = getNormalizedGLCM(dataSetImageData);
@@ -80,31 +78,25 @@ export const solveCBIRTexture = async (
   return filteredCompareResult;
 };
 
+/* Function to Solve CBIR by Color wise */
 export const solveCBIRColor = async (
-  imageQuery: File,
-  imageDataSet: Buffer[] | File[]
-  // Upload data set pass File[]
-  // Scrape data set pass Buffer[]
+  imageQuery: Buffer,
+  imageDataSet: Buffer[]
 ): Promise<CBIRCalculationResult> => {
   // Convert input image (file) to hsv
-  const inputImageData = await convertFileToHSVMatrix(imageQuery);
+  const inputImageData = await convertBufferToHSVMatrix(imageQuery);
 
   // Get feature vector
-  const inputImageFeatureVector =
-    getImageHSVGlobalHistogramFeatureVector(inputImageData);
+  const inputImageFeatureVector = getColorFeatureVector(inputImageData);
 
   // Compare to dataset
   const compareResult = await Promise.all(
     imageDataSet.map(async (image, index) => {
       // Convert to hsv
-      const dataSetImageData =
-        image instanceof File
-          ? await convertFileToHSVMatrix(image)
-          : await convertBufferToHSVMatrix(image);
+      const dataSetImageData = await convertBufferToHSVMatrix(image);
 
       // Get feature vector
-      const dataSetImageFeatureVector =
-        getImageHSVGlobalHistogramFeatureVector(dataSetImageData);
+      const dataSetImageFeatureVector = getColorFeatureVector(dataSetImageData);
 
       // Check similarity
       const similarity = getSimiliarity(
@@ -131,7 +123,8 @@ export const solveCBIRColor = async (
   return filteredCompareResult;
 };
 
-export const getImageHSVGlobalHistogramFeatureVector = (
+/* Function to get Feature Vector For Color */
+export const getColorFeatureVector = (
   imageDataHSV: ImageData<HSV>
 ): number[] => {
   // Inisialisasi feature vector dengan panjang 8x3x3 = 72
@@ -201,6 +194,7 @@ export const getImageHSVGlobalHistogramFeatureVector = (
   return queryFeatureVector;
 };
 
+/* Function to get Feature Vector For Texture */
 export const getImageTextureFeatureVector = (
   normalizedGLCM: GLCMatrix
 ): number[] => {
@@ -236,6 +230,7 @@ export const getImageTextureFeatureVector = (
   return queryTextureVector;
 };
 
+/* Function to get Similarity (using cosine dot product) */
 export const getSimiliarity = (A: number[], B: number[]): number => {
   // Precondition: A.length === B.length
   const n = A.length;
@@ -254,6 +249,7 @@ export const getSimiliarity = (A: number[], B: number[]): number => {
   return sim;
 };
 
+/* Function to get Normalized GLCM */
 export const getNormalizedGLCM = (
   grayImageData: ImageData<Gray>
 ): GLCMatrix => {
@@ -279,15 +275,13 @@ export const getNormalizedGLCM = (
   return normalizedGCLM;
 };
 
-/* FILE / BUFFER CONVERSION */
-export const convertFileToGrayMatrix = async (
-  file: File
-): Promise<ImageData<Gray>> => {
-  // Convert from file to buffer
-  const buffer = await convertFileToBuffer(file);
+/* FILE & BUFFER CONVERSION */
+export const convertFileToBuffer = async (file: File): Promise<Buffer> => {
+  const blob = new Blob([file]);
+  const arrBuff = await blob.arrayBuffer();
+  const buffer = Buffer.from(arrBuff);
 
-  // Convert file to raw image data
-  return await convertBufferGrayMatrix(buffer);
+  return buffer;
 };
 
 export const convertBufferGrayMatrix = async (
@@ -375,15 +369,6 @@ export const convertBufferToRGBMatrix = async (
   return imageData;
 };
 
-export const convertFileToRGBMatrix = async (
-  file: File
-): Promise<ImageData<RGB>> => {
-  // Convert from file to buffer
-  const buffer = await convertFileToBuffer(file);
-
-  return await convertBufferToRGBMatrix(buffer);
-};
-
 export const convertBufferToHSVMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<HSV>> => {
@@ -424,15 +409,7 @@ export const convertBufferToHSVMatrix = async (
   return imageData;
 };
 
-export const convertFileToHSVMatrix = async (
-  file: File
-): Promise<ImageData<HSV>> => {
-  // Convert from file to buffer
-  const buffer = await convertFileToBuffer(file);
-
-  return await convertBufferToHSVMatrix(buffer);
-};
-
+/* COLOR CONVERSION */
 export const convertRGBtoGray = (rgb: RGB): Gray => {
   const [r, g, b] = rgb;
 
@@ -471,18 +448,4 @@ export const convertRGBToHSV = (rgb: RGB): HSV => {
   let v = cMax;
 
   return [h, s, v];
-};
-
-export const convertFileToBuffer = async (file: File): Promise<Buffer> => {
-  const blob = new Blob([file]);
-  const arrBuff = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrBuff);
-
-  return buffer;
-};
-
-export const convertFileToBase64 = async (file: File): Promise<string> => {
-  const buffer = await convertFileToBuffer(file);
-
-  return buffer.toString("base64");
 };

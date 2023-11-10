@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { solveCBIR } from "@/lib/cbir";
+import { convertFileToBuffer, solveCBIR } from "@/lib/cbir";
 import { SearchByUploadHttpSchema } from "@/lib/zod";
 
 export const POST = async (req: NextRequest) => {
@@ -27,8 +27,20 @@ export const POST = async (req: NextRequest) => {
   // Get data
   const { imageInput, isTexture, imageDataSet } = zodParseResult.data;
 
+  // Convert image input to buffer
+  const imageInputBuffer = await convertFileToBuffer(imageInput);
+
+  // Convert files to buffers paralelly (faster than sequentially)
+  const imageDataSetBuffer = await Promise.all(
+    imageDataSet.map(async (file) => await convertFileToBuffer(file))
+  );
+
   // Process data
-  const CBIRColorResult = await solveCBIR(imageInput, imageDataSet, isTexture);
+  const CBIRColorResult = await solveCBIR(
+    imageInputBuffer,
+    imageDataSetBuffer,
+    isTexture
+  );
 
   // Return response
   return NextResponse.json(CBIRColorResult);
