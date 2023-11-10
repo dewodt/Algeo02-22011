@@ -25,25 +25,15 @@ import { FileText, Loader2, Search } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultGallery from "../result-gallery";
 import ResultPDF from "../result-pdf";
+import { LastValidSearchState } from "@/types/hooks";
 
 // Search form & shows result client component
 const SearchByUploadForm = () => {
-  // Image results state
+  // Last valid submission state
   // Initial state: undefined
-  // No results state: []
-  // Has results state: [Images, ...]
-  const [imageResults, setImageResults] =
-    useState<ImageResultsState>(undefined);
-
-  // Time taken state
-  // Initial state: undefined
-  // Final state: number
-  const [timeTaken, setTimeTaken] = useState<number | undefined>(undefined);
-
-  // Last valid query image state
-  const [lastValidInputImageSrc, setLastValidInputImageSrc] = useState<
-    string | undefined
-  >();
+  // Final state: LastValidSearchState
+  const [lastValidSearch, setLastValidSearch] =
+    useState<LastValidSearchState>(undefined);
 
   // Form state
   const form = useForm<z.infer<typeof SearchByUploadFormSchema>>({
@@ -72,9 +62,7 @@ const SearchByUploadForm = () => {
     });
 
     // Reset image results & time taken
-    setImageResults(undefined);
-    setTimeTaken(undefined);
-    setLastValidInputImageSrc(undefined);
+    setLastValidSearch(undefined);
 
     // Start timer
     const timeStart = Date.now() / 1000;
@@ -126,9 +114,12 @@ const SearchByUploadForm = () => {
     const timeEnd = Date.now() / 1000;
 
     // Set image results & time taken
-    setImageResults(imageResults);
-    setTimeTaken(timeEnd - timeStart);
-    setLastValidInputImageSrc(URL.createObjectURL(data.imageInput));
+    setLastValidSearch({
+      imageInputSrc: URL.createObjectURL(data.imageInput),
+      isTexture: data.isTexture,
+      timeTaken: timeEnd - timeStart,
+      imageResults: imageResults,
+    });
 
     // Toast success
     toast({
@@ -224,7 +215,7 @@ const SearchByUploadForm = () => {
         </div>
 
         {/* Image results */}
-        {imageResults && timeTaken && lastValidInputImageSrc && (
+        {lastValidSearch && (
           <>
             <Separator orientation="horizontal" />
             <div className="flex flex-col gap-4">
@@ -232,26 +223,20 @@ const SearchByUploadForm = () => {
               <div className="sm:flex sm:flex-row sm:justify-between">
                 <h3 className="font-bold">Results:</h3>
                 <p className="text-sm">
-                  {imageResults.length} Results in {timeTaken!.toFixed(2)}{" "}
-                  Seconds
+                  {lastValidSearch.imageResults.length} Results in{" "}
+                  {lastValidSearch.timeTaken.toFixed(2)} Seconds
                 </p>
               </div>
 
               {/* Results Images + Pagination */}
-              {imageResults.length > 0 && (
-                <ResultGallery imageResults={imageResults} />
+              {lastValidSearch.imageResults.length > 0 && (
+                <ResultGallery imageResults={lastValidSearch.imageResults} />
               )}
 
               {/* Convert result to pdf button */}
               <PDFDownloadLink
                 className="w-full self-center sm:max-w-xs"
-                document={
-                  <ResultPDF
-                    imageInputSrc={lastValidInputImageSrc}
-                    imageResults={imageResults}
-                    timeTaken={timeTaken}
-                  />
-                }
+                document={<ResultPDF lastValidSearch={lastValidSearch} />}
                 fileName="Reverse Image Result.pdf"
               >
                 {({ loading }) => (
