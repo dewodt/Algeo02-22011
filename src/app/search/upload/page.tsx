@@ -3,7 +3,11 @@ import SearchByUploadForm from "./search-by-upload-form";
 
 export const metadata: Metadata = {
   title: "Search By Upload Data Set | HBD Lens",
-  description: "Reverse image.",
+  description:
+    "HBD Lens is a reverse search image tool using content-based image retrieval (CBIR) method.",
+  generator: "Next.js",
+  applicationName: "HBD Lens",
+  themeColor: "#16A34A",
 };
 
 const SearchPage = () => {

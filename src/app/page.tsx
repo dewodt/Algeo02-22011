@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Home | HBD Lens",
-  description: "Home | HBD Lens",
+  title: "HBD Lens",
+  description:
+    "HBD Lens is a reverse search image tool using content-based image retrieval (CBIR) method.",
+  generator: "Next.js",
+  applicationName: "HBD Lens",
+  themeColor: "#16A34A",
 };
 
 const HomePage = () => {

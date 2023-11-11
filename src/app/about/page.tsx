@@ -4,7 +4,11 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "About | HBD Lens",
-  description: "About",
+  description:
+    "HBD Lens is a reverse search image tool using content-based image retrieval (CBIR) method.",
+  generator: "Next.js",
+  applicationName: "HBD Lens",
+  themeColor: "#16A34A",
 };
 
 const HowToUse = () => {
