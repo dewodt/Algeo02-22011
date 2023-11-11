@@ -22,12 +22,9 @@ const HowToUse = () => {
 
         {/* Steps */}
         <p className="text-justify text-lg leading-relaxed lg:text-xl lg:leading-relaxed">
-          Welcome to HBD Lens, a cutting-edge project crafted by the ingenious
-          minds of Haikal, Bana, and Dewo (Hence called HBD) from the Bandung
-          Institute of Technology. This was made to fullfill the final task of
-          linear algebra and geometry course. This project, a reverse image
-          query utilizing Content-Based Image Retrieval (CBIR) technology. This
-          project is fully open source and can be accessed by{" "}
+        <strong>HBD Lens</strong> merupakan web yang dapat melakukan image processing untuk menentukan kesamaan antar satu gambar dengan gambar lainnya,
+            web ini menggunakan metode CBIR (Content-Based Image Retrieval) berdasarkan warna (CBIR color) dan tekstur (CBIR texture), web ini juga memiliki user
+             interface yang menarik dan memudahkan pengguna.{" "}
           <Link href="https://github.com/dewodt/Algeo02-22011">
             <Button
               variant="link"
