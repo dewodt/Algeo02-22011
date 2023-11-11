@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# HBD Lens
 
-## Getting Started
+Welcome to HBD Lens, a cutting-edge project crafted by the ingenious minds of Haikal, Bana, and Dewo (Hence called HBD) from the Bandung Institute of Technology. This was made to fullfill the final task of inear algebra and geometry course. This project, a reverse image query utilizing Content-Based Image Retrieval (CBIR) technology. This project is fully open source and can be accessed by this [link](https://github.com/dewodt/Algeo02-22011).
 
-First, run the development server:
+## Table of Contents
+
+- [General Info](#general-information)
+- [Technologies Used](#technologies-used)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Project Status](#project-status)
+<!-- * [License](#license) -->
+
+## General Information
+
+- HBD Lens is a reverse image query utilizing Content-Based Image Retrieval (CBIR) technology.
+- In the digital era, the number of images produced and stored is increasing rapidly, both in personal and professional contexts. Image retrieval systems become very relevant and important in facing this challenge.
+- With the help of image retrieval system, users can easily search, access and manage their image collection.
+
+## Technologies Used
+
+- Next.js - v14.0.1 (Fullstack Framework)
+- TailwindCSS -v3.3.0 (CSS Library)
+- shadcn/ui - vN/A (UI Library)
+- sharp - v0.32.6 (Image Processing)
+- zod - v3.22.4 (Schema Validation)
+- react-hook-form - v(7.47.0) (Form Hooks)
+- react-pdf/renderer - v3.1.14 (Render PDF)
+- jsdom - v22.1.0 (Convert String to DOM)
+- react-webcam - v7.2.0 (Webcam Hooks)
+
+## Features
+
+- Reverse image search by uploading your image query or you can also use webcam!
+- You can upload a folder of dataset or you can also insert an url to scrape!
+- Compare input & dataset by color or texture!
+- See the results with pagination or you can also download the pdf!
+- Reponsive & light/dark mode available!
+
+## Screenshots
+
+![Landing Page](/img/readme/landing-page.png)
+![Search Menu Page](/img/readme/search-menu-page.png)
+![Search by Upload Data Set Page](/img/readme/search-upload-data-set-page.png)
+![Search by Scrape Data Set Page](/img/readme/search-scrape-data-set-page.png)
+![How To Use Page](/img/readme/how-to-use-page.png)
+![About Page](/img/readme/about-page.png)
+
+## Setup
+
+To run this project, clone this repository
+
+```bash
+git clone https://github.com/dewodt/Algeo02-22011.git
+```
+
+Go to `/src` directory
+
+```bash
+cd src
+```
+
+Start the project by running
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To use this project, you can read [How To Use](http://localhost:3000/how-to-use).
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+NOTE: This project must be run on localhost for better experience because free hosting service such as Vercel limits 4.5 MB payload for serverless functions.
 
-## Learn More
+## Usage
 
-To learn more about Next.js, take a look at the following resources:
+This app works similarly like Google Lens. Let's say you have a dataset of images or a link to a website that contains images. You also have an image that you want to reverse search & find the similarity. All you have to do is run this app, upload your images, pick the calculation method (color or texture) then click search! For more information, you can run this app and read [How To Use](http://localhost:3000/how-to-use).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Project is: _complete_.
