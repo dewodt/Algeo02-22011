@@ -1,4 +1,4 @@
-import { type ImageResults } from "@/types/image";
+import type { LastValidSearch } from "@/types/hooks";
 import {
   Document,
   Page,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Font,
+  Link,
 } from "@react-pdf/renderer";
 
 Font.register({
@@ -97,58 +98,71 @@ const styles = StyleSheet.create({
 
 // Create Document Component
 const ResultPDF = ({
-  imageInput,
-  imageResults,
-  timeTaken,
+  lastValidSearch,
 }: {
-  imageInput: File;
-  imageResults: ImageResults;
-  timeTaken: number;
-}) => (
-  <Document
-    title="Reverse Image Results"
-    author="HBD Lens"
-    subject="Image Results"
-    keywords="HBD Lens, Reverse Image Results, PDF"
-  >
-    <Page size="A3" orientation="portrait" style={styles.page}>
-      {/* Title */}
-      <Text style={styles.h1}>Reverse Image Search Result</Text>
+  lastValidSearch: LastValidSearch;
+}) => {
+  const { imageInputSrc, imageResults, timeTaken, scrapeUrl, isTexture } =
+    lastValidSearch;
 
-      {/* Image Input */}
-      <View style={styles.inputSection}>
-        <Text style={styles.h2}>Image Input:</Text>
-        {/* eslint-disable-next-line */}
-        <Image src={URL.createObjectURL(imageInput)} style={styles.image} />
-      </View>
+  return (
+    <Document
+      title="Reverse Image Results"
+      author="HBD Lens"
+      subject="Image Results"
+      keywords="HBD Lens, Reverse Image Results, PDF"
+    >
+      <Page size="A3" orientation="portrait" style={styles.page}>
+        {/* Title */}
+        <Text style={styles.h1}>Reverse Image Search Result</Text>
 
-      {/* Image Results */}
-      <View style={styles.resultSection}>
-        {/* Results Title */}
-        <Text style={styles.h2}>Results:</Text>
-
-        {/* Results count & time */}
-        <Text style={styles.text}>
-          {imageResults.length} results in {timeTaken.toFixed(2)} seconds
-        </Text>
-
-        {/* Results images */}
-        <View style={styles.imagesSection}>
-          {imageResults.map((image, idx) => {
-            return (
-              <View key={idx} style={styles.imageAndLabelSection}>
-                {/* eslint-disable-next-line */}
-                <Image src={image.imageSrc} style={styles.image} />
-                <Text style={styles.imageLabel}>
-                  {(image.similarity * 100).toFixed(2)}%
-                </Text>
-              </View>
-            );
-          })}
+        {/* Image Input */}
+        <View style={styles.inputSection}>
+          <Text style={styles.h2}>Image Input:</Text>
+          {/* eslint-disable-next-line */}
+          <Image src={imageInputSrc} style={styles.image} />
         </View>
-      </View>
-    </Page>
-  </Document>
-);
 
+        {/* Method */}
+        <View style={styles.inputSection}>
+          <Text style={styles.h2}>Method:</Text>
+          <Text style={styles.text}>{isTexture ? "Texture" : "Color"}</Text>
+        </View>
+
+        {/* Image Results */}
+        <View style={styles.resultSection}>
+          {/* Results Title */}
+          <Text style={styles.h2}>Results:</Text>
+
+          {/* Results count & time */}
+          <Text style={styles.text}>
+            {imageResults.length} results in {timeTaken.toFixed(2)} seconds
+          </Text>
+
+          {/* Data set URL Source (if using scraping) */}
+          {scrapeUrl && (
+            <Link src={scrapeUrl} style={styles.text}>
+              Data Set Source
+            </Link>
+          )}
+
+          {/* Results images */}
+          <View style={styles.imagesSection}>
+            {imageResults.map((image, idx) => {
+              return (
+                <View key={idx} style={styles.imageAndLabelSection}>
+                  {/* eslint-disable-next-line */}
+                  <Image src={image.imageSrc} style={styles.image} />
+                  <Text style={styles.imageLabel}>
+                    {(image.similarity * 100).toFixed(2)}%
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
 export default ResultPDF;

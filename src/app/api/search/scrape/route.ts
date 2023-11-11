@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { SearchByScrapeFormSchema } from "@/lib/zod";
 import { JSDOM } from "jsdom";
-import { solveCBIRColor } from "@/lib/cbir";
+import { convertFileToBuffer, solveCBIR } from "@/lib/cbir";
 import { SuccessSearchByScrapeResponse } from "@/types/api";
 
 export const POST = async (req: NextRequest) => {
@@ -53,7 +53,10 @@ export const POST = async (req: NextRequest) => {
     }
   });
 
-  // Get buffers from images eachh images
+  // Convert image input to buffer
+  const imageInputBuffer = await convertFileToBuffer(imageInput);
+
+  // Convert scraped urls to buffers paralelly (faster than sequentially)
   const processedImages = await Promise.all(
     imageUrls.map(async (url) => {
       const res = await fetch(url);
@@ -72,30 +75,29 @@ export const POST = async (req: NextRequest) => {
   );
 
   // Get array of image buffers
-  const imageBuffers = processedImages.map((image) => image.imageBuffer);
+  const imageDataSetBuffers = processedImages.map((image) => image.imageBuffer);
 
   // Get image src
-  const imageSrcs = processedImages.map((image) => image.imageSrc);
+  const imageDataSetSrcs = processedImages.map((image) => image.imageSrc);
 
-  if (isTexture) {
-    // Solve by texture
-  } else {
-    // Solve by color
-    const CBIRColorResult = await solveCBIRColor(imageInput, imageBuffers);
+  const CBIRResult = await solveCBIR(
+    imageInputBuffer,
+    imageDataSetBuffers,
+    isTexture
+  );
 
-    // Return response
-    const imageResults: SuccessSearchByScrapeResponse = CBIRColorResult.map(
-      (result) => {
-        const { index, similarity } = result;
-        const imageSrc = imageSrcs[index];
+  // Return response
+  const imageResults: SuccessSearchByScrapeResponse = CBIRResult.map(
+    (result) => {
+      const { index, similarity } = result;
+      const imageSrc = imageDataSetSrcs[index];
 
-        return {
-          imageSrc,
-          similarity,
-        };
-      }
-    );
+      return {
+        imageSrc,
+        similarity,
+      };
+    }
+  );
 
-    return NextResponse.json(imageResults);
-  }
+  return NextResponse.json(imageResults);
 };

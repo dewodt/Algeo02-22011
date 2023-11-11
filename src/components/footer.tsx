@@ -13,14 +13,6 @@ const Footer = () => {
         >
           About
         </Link>
-
-        {/* Privacy policy */}
-        <Link
-          href="/privacy-policy"
-          className="font-medium text-muted-foreground xl:hover:text-foreground"
-        >
-          Privacy Policy
-        </Link>
       </div>
 
       {/* Copyright */}
