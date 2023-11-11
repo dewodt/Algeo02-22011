@@ -19,7 +19,6 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "fs": "^0.0.1-security",
-    "jimp": "^0.22.10",
     "jsdom": "^22.1.0",
     "lucide-react": "^0.291.0",
     "next": "14.0.1",

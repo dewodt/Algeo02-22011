@@ -26,10 +26,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
   }, [pathname]);
 
   return (
-    <html lang="en" className={`${inter.variable}`}>
+    <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>
       <ThemeProvider attribute="class" defaultTheme="light">
         <body
-          className={`font-inter flex min-h-screen flex-col bg-background ${
+          className={`flex min-h-screen flex-col bg-background font-inter ${
             navBarExpanded && "overflow-hidden"
           }`}
         >

@@ -170,14 +170,11 @@ const SearchByScrapeForm = () => {
         className="flex flex-col gap-6 lg:gap-8"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:gap-6">
-          {/* Shows current inputed image */}
           {/* Shows current inputed image / webcam */}
-          <div className="aspect-[5/3] w-full rounded-lg border-2 border-border bg-muted sm:h-48 sm:w-auto md:h-56 lg:h-72">
+          <div className="aspect-[5/3] w-full overflow-hidden rounded-lg border-2 border-border bg-muted sm:h-48 sm:w-auto md:h-56 lg:h-72">
             {isCameraCapturing ? (
               <Webcam
                 audio={false}
-                width={320}
-                height={160}
                 screenshotFormat="image/jpeg"
                 className="h-full w-full rounded-lg object-cover object-center"
                 ref={webCamRef}
@@ -250,49 +247,47 @@ const SearchByScrapeForm = () => {
               )}
             </Button>
 
-            <div className="flex flex-col gap-4">
-              {/* Toggle Color vs Texture */}
-              <FormField
-                control={control}
-                name="isTexture"
-                render={({ field }) => (
-                  <>
-                    <FormLabel>Calculation Method</FormLabel>
-                    <FormItem className="flex items-center justify-center rounded-md border p-4">
-                      <div className="flex flex-row items-center gap-2">
-                        <FormLabel>Color</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel>Texture</FormLabel>
-                      </div>
-                    </FormItem>
-                  </>
-                )}
-              />
+            {/* Toggle Color vs Texture */}
+            <FormField
+              control={control}
+              name="isTexture"
+              render={({ field }) => (
+                <>
+                  <FormLabel>Calculation Method</FormLabel>
+                  <FormItem className="flex items-center justify-center rounded-md border p-4">
+                    <div className="flex flex-row items-center gap-2">
+                      <FormLabel>Color</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel>Texture</FormLabel>
+                    </div>
+                  </FormItem>
+                </>
+              )}
+            />
 
-              {/* Search / submit button */}
-              <Button
-                size="lg"
-                type="submit"
-                disabled={isSubmitting || isCameraCapturing}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Search className="mr-2 " />
-                    Search
-                  </>
-                )}
-              </Button>
-            </div>
+            {/* Search / submit button */}
+            <Button
+              size="lg"
+              type="submit"
+              disabled={isSubmitting || isCameraCapturing}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 " />
+                  Search
+                </>
+              )}
+            </Button>
           </div>
         </div>
 
