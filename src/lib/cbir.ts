@@ -6,9 +6,10 @@ import type {
   ImageMatrix,
   ImageData,
   CBIRCalculationResult,
-  GLCMatrix,
+  GLCM,
 } from "@/types/image";
-import { getNormalizeMatrix } from "./matrix";
+import { getNormalizeMatrix, initMatrix } from "./matrix";
+import { getMeanFromArr, getStandardDeviationFromArr } from "./statistics";
 
 /* Function to Solve CBIR */
 export const solveCBIR = async (
@@ -196,7 +197,7 @@ export const getColorFeatureVector = (
 
 /* Function to get Feature Vector For Texture */
 export const getImageTextureFeatureVector = (
-  normalizedGLCM: GLCMatrix
+  normalizedGLCM: GLCM
 ): number[] => {
   let contrast = 0;
   let homogeneity = 0;
@@ -225,9 +226,17 @@ export const getImageTextureFeatureVector = (
   // energy
   const energy = Math.sqrt(ASM);
 
-  const queryTextureVector: number[] = [contrast, homogeneity, entropy, energy];
+  // feature vector
+  const featureVector: number[] = [contrast, homogeneity, entropy, energy];
 
-  return queryTextureVector;
+  // Get gaussian normalization
+  const mean = getMeanFromArr(featureVector);
+  const standardDeviation = getStandardDeviationFromArr(featureVector);
+  const gaussianNormalization = featureVector.map((value) => {
+    return (value - mean) / standardDeviation;
+  });
+
+  return gaussianNormalization;
 };
 
 /* Function to get Similarity (using cosine dot product) */
@@ -250,29 +259,27 @@ export const getSimiliarity = (A: number[], B: number[]): number => {
 };
 
 /* Function to get Normalized GLCM */
-export const getNormalizedGLCM = (
-  grayImageData: ImageData<Gray>
-): GLCMatrix => {
-  // Initialize symmetric matrix
-  const symetricMatrix: GLCMatrix = new Array(256).fill(Array(256).fill(0));
+export const getNormalizedGLCM = (grayImageData: ImageData<Gray>): GLCM => {
+  // Initialize symmetric glcm
+  const symetricGLCM = initMatrix(256, 256);
 
-  // Get symmetric co-occurance matrix
+  // Get symmetric glcm
   for (let i = 0; i < grayImageData.height; i++) {
     for (let j = 0; j < grayImageData.width; j++) {
       if (j != 0) {
         const firstGrayElement = grayImageData.matrix[i][j - 1];
         const secondGrayElement = grayImageData.matrix[i][j];
 
-        symetricMatrix[firstGrayElement][secondGrayElement] += 1;
-        symetricMatrix[secondGrayElement][firstGrayElement] += 1;
+        symetricGLCM[firstGrayElement][secondGrayElement] += 1;
+        symetricGLCM[secondGrayElement][firstGrayElement] += 1;
       }
     }
   }
 
-  // Normalize, to get GLCM Normalized
-  const normalizedGCLM = getNormalizeMatrix(symetricMatrix);
+  // Normalize glcm
+  const normalizedGLCM = getNormalizeMatrix(symetricGLCM);
 
-  return normalizedGCLM;
+  return normalizedGLCM;
 };
 
 /* FILE & BUFFER CONVERSION */

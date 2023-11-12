@@ -6,7 +6,8 @@ export type Gray = number;
 
 export type ImageMatrix<T> = T[][];
 
-export type GLCMatrix = number[][];
+// Gray Level Co-occurrence Matrix
+export type GLCM = number[][];
 
 export interface ImageData<T> {
   width: number;
