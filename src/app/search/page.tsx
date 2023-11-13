@@ -15,7 +15,6 @@ export const metadata: Metadata = {
     "HBD Lens is a reverse search image tool using content-based image retrieval (CBIR) method.",
   generator: "Next.js",
   applicationName: "HBD Lens",
-  themeColor: "#16A34A",
 };
 
 const SearchMenuPage = () => {
