@@ -15,3 +15,14 @@ export const getStandardDeviationFromArr = (arr: number[]): number => {
 
   return Math.sqrt(variance / arr.length);
 };
+
+// Get weighted mean of array
+export const getWeightedMeanFromArr = (
+  arr: number[],
+  weights: number[]
+): number => {
+  const sumWiXi = arr.reduce((acc, curr, i) => acc + curr * weights[i], 0);
+  const sumWi = weights.reduce((acc, curr) => acc + curr, 0);
+
+  return sumWiXi / sumWi;
+};

@@ -9,7 +9,11 @@ import type {
   GLCM,
 } from "@/types/image";
 import { getNormalizeMatrix, initMatrix } from "./matrix";
-import { getMeanFromArr, getStandardDeviationFromArr } from "./statistics";
+import {
+  getMeanFromArr,
+  getStandardDeviationFromArr,
+  getWeightedMeanFromArr,
+} from "./statistics";
 
 /* Function to Solve CBIR */
 export const solveCBIR = async (
@@ -88,7 +92,18 @@ export const solveCBIRColor = async (
   const inputImageData = await convertBufferToHSVMatrix(imageQuery);
 
   // Get feature vector
-  const inputImageFeatureVector = getColorFeatureVector(inputImageData);
+  const inputImage16FeatureVector = getColor16FeatureVector(inputImageData);
+
+  // Get weighted block
+  // Blok 6, 7, 10, 11 memiliki bobot 2
+  // Blok lainnya memiliki bobot 1
+  // prettier-ignore
+  const weightedBlock = [
+    1, 1, 1, 1,
+    1, 2, 2, 1,
+    1, 2, 2, 1,
+    1, 1, 1, 1
+  ];
 
   // Compare to dataset
   const compareResult = await Promise.all(
@@ -97,18 +112,32 @@ export const solveCBIRColor = async (
       const dataSetImageData = await convertBufferToHSVMatrix(image);
 
       // Get feature vector
-      const dataSetImageFeatureVector = getColorFeatureVector(dataSetImageData);
+      const dataSetImage16FeatureVector =
+        getColor16FeatureVector(dataSetImageData);
 
-      // Check similarity
-      const similarity = getSimiliarity(
-        inputImageFeatureVector,
-        dataSetImageFeatureVector
+      // Get similarity each block
+      const blockSimilarities: number[] = [];
+
+      for (let i = 0; i < 16; i++) {
+        const similarity = getSimiliarity(
+          inputImage16FeatureVector[i],
+          dataSetImage16FeatureVector[i]
+        );
+
+        blockSimilarities.push(similarity);
+      }
+
+      // Get weighted average
+      // Blok 6, 7, 10, 11 memiliki bobot 2
+      // Blok lainnya memiliki bobot 1
+      const meanSimilarity = getWeightedMeanFromArr(
+        blockSimilarities,
+        weightedBlock
       );
-
       // To reduce load in data transmission, only return the index in the original dataset array.
       return {
         index,
-        similarity,
+        similarity: meanSimilarity,
       };
     })
   );
@@ -124,15 +153,24 @@ export const solveCBIRColor = async (
   return filteredCompareResult;
 };
 
-/* Function to get Feature Vector For Color */
-export const getColorFeatureVector = (
+/* Function to get Feature Vector For Color (Array of 16x72 matrix) */
+export const getColor16FeatureVector = (
   imageDataHSV: ImageData<HSV>
-): number[] => {
-  // Inisialisasi feature vector dengan panjang 8x3x3 = 72
-  const queryFeatureVector = new Array(72).fill(0);
+): number[][] => {
+  // Bagi image menjadi 4x4 blok
+  // Setiap blok memiliki 8x3x3 bin
+  // Inisialisasi array untuk menyimpan 16 feature vector (1 untuk setiap blok)
+  const featureVectors16 = initMatrix(16, 72);
+
   for (let i = 0; i < imageDataHSV.height; i++) {
     for (let j = 0; j < imageDataHSV.width; j++) {
       const [h, s, v] = imageDataHSV.matrix[i][j];
+
+      // Get block index
+      const blockI = Math.floor((4 * i) / imageDataHSV.height);
+      const blockJ = Math.floor((4 * j) / imageDataHSV.width);
+      const blockIndex = blockI * 4 + blockJ;
+
       // H
       // 0 => 316, 360
       // 1 => 1, 25
@@ -188,11 +226,13 @@ export const getColorFeatureVector = (
         vIndex = 2;
       }
 
-      queryFeatureVector[hIndex * 9 + sIndex * 3 + vIndex] += 1;
+      // Increment feature vector
+      const binIndex = hIndex * 9 + sIndex * 3 + vIndex;
+      featureVectors16[blockIndex][binIndex] += 1;
     }
   }
 
-  return queryFeatureVector;
+  return featureVectors16;
 };
 
 /* Function to get Feature Vector For Texture */
