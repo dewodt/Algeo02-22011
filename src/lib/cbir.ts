@@ -335,7 +335,8 @@ export const convertBufferGrayMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<Gray>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
 
@@ -378,7 +379,8 @@ export const convertBufferToRGBMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<RGB>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
 
@@ -420,7 +422,8 @@ export const convertBufferToHSVMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<HSV>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
   const pixelArray = new Uint8ClampedArray(data.buffer);
