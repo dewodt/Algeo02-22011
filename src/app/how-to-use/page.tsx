@@ -12,37 +12,30 @@ export const metadata: Metadata = {
 
 const HowToUse = () => {
   const steps = [
-    {step: "Choose option to compare query with uploading a dataset or scraping a dataset from a link.", 
-    imageurl:<Image className="w-4/5, sm:w-4/5"
-    src="/Input.png"
-    alt="Choose Input"
-    width={1000}
-    height={400}/> },
-    {step: "Upload your input/query image to compare with dataset."},
-    {step: "Choose to compare by color or by texture.",
-    imageurl:<Image className="w-3/5, sm:w-1/2 "
-    src="/colortexture.png"
-    alt="Color texture"
-    width={600}
-    height={400}/>},
-    {step: "If you chose upload dataset, upload your data set. Otherwise, input a link to scrape.",
-    imageurl:<Image className="md:w-3/5"
-    src="/inputfolder.png"
-    alt="Input folder"
-    width={600}
-    height={400}/>,
-    imageurl2:<Image className="md:w-3/5"
-    src="/inputlink.png"
-    alt="Input link"
-    width={600}
-    height={400}/>},
-    {step: "Click the search button!",
-    imageurl:<Image className="w-1/5, md:w-2/5"
-    src="/search.png"
-    alt="Logo search"
-    width={600}
-    height={400}/>},
-    {step: "You can see the result with pagination or you can also download the pdf!"},
+    {
+      step: "Choose option to compare query with uploading a dataset or scraping a dataset from a link.",
+      imageUrls: ["/how-options.png"],
+    },
+    {
+      step: "Upload your input/query image to compare with dataset or you can capture an image using your webcam.",
+      imageUrls: ["/how-input-query.png"],
+    },
+    {
+      step: "Choose to compare by color or by texture.",
+      imageUrls: ["/how-color-texture.png"],
+    },
+    {
+      step: "If you chose upload dataset, upload your data set. Otherwise, input a link to scrape.",
+      imageUrls: ["/how-input-dataset.png", "/how-input-link.png"],
+    },
+    {
+      step: "Click the search button!",
+      imageUrls: ["/how-search.png"],
+    },
+    {
+      step: "You can see the result with pagination or you can also download the pdf!",
+      imageUrls: ["/how-results.png"],
+    },
   ];
 
   return (
@@ -54,13 +47,26 @@ const HowToUse = () => {
         </h1>
 
         {/* Steps */}
-        <ol className="flex list-decimal flex-col gap-2 lg:gap-4">
+        <ol className="flex list-decimal flex-col gap-4 pl-5">
           {steps.map((step, idx) => {
             return (
-              <li key={idx} className="text-lg marker:font-bold lg:text-xl ">
-                {step.step}
-                {step.imageurl}
-                {step.imageurl2}
+              <li
+                key={idx}
+                className="text-justify text-lg marker:font-bold lg:text-xl"
+              >
+                <span>{step.step}</span>
+                {step.imageUrls.map((imageUrl, idx) => {
+                  return (
+                    <Image
+                      key={idx}
+                      src={imageUrl}
+                      className="mx-auto my-4 h-auto w-full rounded-lg border-2 border-border sm:w-3/5"
+                      alt={step.step}
+                      width={400}
+                      height={300}
+                    />
+                  );
+                })}
               </li>
             );
           })}
