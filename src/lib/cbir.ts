@@ -6,9 +6,14 @@ import type {
   ImageMatrix,
   ImageData,
   CBIRCalculationResult,
-  GLCMatrix,
+  GLCM,
 } from "@/types/image";
-import { getNormalizeMatrix } from "./matrix";
+import { getNormalizeMatrix, initMatrix } from "./matrix";
+import {
+  getMeanFromArr,
+  getStandardDeviationFromArr,
+  getWeightedMeanFromArr,
+} from "./statistics";
 
 /* Function to Solve CBIR */
 export const solveCBIR = async (
@@ -87,7 +92,18 @@ export const solveCBIRColor = async (
   const inputImageData = await convertBufferToHSVMatrix(imageQuery);
 
   // Get feature vector
-  const inputImageFeatureVector = getColorFeatureVector(inputImageData);
+  const inputImage16FeatureVector = getColor16FeatureVector(inputImageData);
+
+  // Get weighted block
+  // Blok 6, 7, 10, 11 memiliki bobot 2
+  // Blok lainnya memiliki bobot 1
+  // prettier-ignore
+  const weightedBlock = [
+    1, 1, 1, 1,
+    1, 2, 2, 1,
+    1, 2, 2, 1,
+    1, 1, 1, 1
+  ];
 
   // Compare to dataset
   const compareResult = await Promise.all(
@@ -96,18 +112,32 @@ export const solveCBIRColor = async (
       const dataSetImageData = await convertBufferToHSVMatrix(image);
 
       // Get feature vector
-      const dataSetImageFeatureVector = getColorFeatureVector(dataSetImageData);
+      const dataSetImage16FeatureVector =
+        getColor16FeatureVector(dataSetImageData);
 
-      // Check similarity
-      const similarity = getSimiliarity(
-        inputImageFeatureVector,
-        dataSetImageFeatureVector
+      // Get similarity each block
+      const blockSimilarities: number[] = [];
+
+      for (let i = 0; i < 16; i++) {
+        const similarity = getSimiliarity(
+          inputImage16FeatureVector[i],
+          dataSetImage16FeatureVector[i]
+        );
+
+        blockSimilarities.push(similarity);
+      }
+
+      // Get weighted average
+      // Blok 6, 7, 10, 11 memiliki bobot 2
+      // Blok lainnya memiliki bobot 1
+      const meanSimilarity = getWeightedMeanFromArr(
+        blockSimilarities,
+        weightedBlock
       );
-
       // To reduce load in data transmission, only return the index in the original dataset array.
       return {
         index,
-        similarity,
+        similarity: meanSimilarity,
       };
     })
   );
@@ -123,15 +153,24 @@ export const solveCBIRColor = async (
   return filteredCompareResult;
 };
 
-/* Function to get Feature Vector For Color */
-export const getColorFeatureVector = (
+/* Function to get Feature Vector For Color (Array of 16x72 matrix) */
+export const getColor16FeatureVector = (
   imageDataHSV: ImageData<HSV>
-): number[] => {
-  // Inisialisasi feature vector dengan panjang 8x3x3 = 72
-  const queryFeatureVector = new Array(72).fill(0);
+): number[][] => {
+  // Bagi image menjadi 4x4 blok
+  // Setiap blok memiliki 8x3x3 bin
+  // Inisialisasi array untuk menyimpan 16 feature vector (1 untuk setiap blok)
+  const featureVectors16 = initMatrix(16, 72);
+
   for (let i = 0; i < imageDataHSV.height; i++) {
     for (let j = 0; j < imageDataHSV.width; j++) {
       const [h, s, v] = imageDataHSV.matrix[i][j];
+
+      // Get block index
+      const blockI = Math.floor((4 * i) / imageDataHSV.height);
+      const blockJ = Math.floor((4 * j) / imageDataHSV.width);
+      const blockIndex = blockI * 4 + blockJ;
+
       // H
       // 0 => 316, 360
       // 1 => 1, 25
@@ -187,16 +226,18 @@ export const getColorFeatureVector = (
         vIndex = 2;
       }
 
-      queryFeatureVector[hIndex * 9 + sIndex * 3 + vIndex] += 1;
+      // Increment feature vector
+      const binIndex = hIndex * 9 + sIndex * 3 + vIndex;
+      featureVectors16[blockIndex][binIndex] += 1;
     }
   }
 
-  return queryFeatureVector;
+  return featureVectors16;
 };
 
 /* Function to get Feature Vector For Texture */
 export const getImageTextureFeatureVector = (
-  normalizedGLCM: GLCMatrix
+  normalizedGLCM: GLCM
 ): number[] => {
   let contrast = 0;
   let homogeneity = 0;
@@ -225,9 +266,17 @@ export const getImageTextureFeatureVector = (
   // energy
   const energy = Math.sqrt(ASM);
 
-  const queryTextureVector: number[] = [contrast, homogeneity, entropy, energy];
+  // feature vector
+  const featureVector: number[] = [contrast, homogeneity, entropy, energy];
 
-  return queryTextureVector;
+  // Get gaussian normalization
+  const mean = getMeanFromArr(featureVector);
+  const standardDeviation = getStandardDeviationFromArr(featureVector);
+  const gaussianNormalization = featureVector.map((value) => {
+    return (value - mean) / standardDeviation;
+  });
+
+  return gaussianNormalization;
 };
 
 /* Function to get Similarity (using cosine dot product) */
@@ -250,29 +299,27 @@ export const getSimiliarity = (A: number[], B: number[]): number => {
 };
 
 /* Function to get Normalized GLCM */
-export const getNormalizedGLCM = (
-  grayImageData: ImageData<Gray>
-): GLCMatrix => {
-  // Initialize symmetric matrix
-  const symetricMatrix: GLCMatrix = new Array(256).fill(Array(256).fill(0));
+export const getNormalizedGLCM = (grayImageData: ImageData<Gray>): GLCM => {
+  // Initialize symmetric glcm
+  const symetricGLCM = initMatrix(256, 256);
 
-  // Get symmetric co-occurance matrix
+  // Get symmetric glcm
   for (let i = 0; i < grayImageData.height; i++) {
     for (let j = 0; j < grayImageData.width; j++) {
       if (j != 0) {
         const firstGrayElement = grayImageData.matrix[i][j - 1];
         const secondGrayElement = grayImageData.matrix[i][j];
 
-        symetricMatrix[firstGrayElement][secondGrayElement] += 1;
-        symetricMatrix[secondGrayElement][firstGrayElement] += 1;
+        symetricGLCM[firstGrayElement][secondGrayElement] += 1;
+        symetricGLCM[secondGrayElement][firstGrayElement] += 1;
       }
     }
   }
 
-  // Normalize, to get GLCM Normalized
-  const normalizedGCLM = getNormalizeMatrix(symetricMatrix);
+  // Normalize glcm
+  const normalizedGLCM = getNormalizeMatrix(symetricGLCM);
 
-  return normalizedGCLM;
+  return normalizedGLCM;
 };
 
 /* FILE & BUFFER CONVERSION */
@@ -288,7 +335,8 @@ export const convertBufferGrayMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<Gray>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
 
@@ -331,7 +379,8 @@ export const convertBufferToRGBMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<RGB>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
 
@@ -373,7 +422,8 @@ export const convertBufferToHSVMatrix = async (
   buffer: Buffer
 ): Promise<ImageData<HSV>> => {
   // Convert file to raw image data
-  const { data, info } = await sharp(buffer)
+  // Must use failOn: "error" to handle "VipsJpeg: Invalid SOS parameters for sequential JPEG" error (Samsung camera bug)
+  const { data, info } = await sharp(buffer, { failOn: "error" })
     .raw()
     .toBuffer({ resolveWithObject: true });
   const pixelArray = new Uint8ClampedArray(data.buffer);
