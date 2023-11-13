@@ -62,6 +62,12 @@ Go to `/src` directory
 cd src
 ```
 
+Install node modules (especially for first time using)
+
+```bash
+npm install
+```
+
 Start the project by running
 
 ```bash
@@ -72,7 +78,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 To use this project, you can read [How To Use](http://localhost:3000/how-to-use).
 
-NOTE: This project must be run on localhost for better experience because free hosting service such as Vercel limits 4.5 MB payload for serverless functions.
+**NOTE: This project must be run on localhost for better experience because free hosting service such as Vercel limits 4.5 MB payload for serverless functions.**
 
 ## Usage
 
