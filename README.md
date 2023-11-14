@@ -22,6 +22,7 @@ Welcome to HBD Lens, a cutting-edge project crafted by the ingenious minds of Ha
 ## Technologies Used
 
 - Next.js - v14.0.1 (Fullstack Framework)
+- Nodejs - v20.9.0 (JavaScript Runtime)
 - TailwindCSS -v3.3.0 (CSS Library)
 - shadcn/ui - vN/A (UI Library)
 - sharp - v0.32.6 (Image Processing)
@@ -50,6 +51,12 @@ Welcome to HBD Lens, a cutting-edge project crafted by the ingenious minds of Ha
 
 ## Setup
 
+**IMPORTANT NOTES:**
+
+**1. This project must be run on localhost for better experience because free hosting service such as Vercel limits 4.5 MB payload for serverless functions ([source](https://vercel.com/docs/functions/serverless-functions/runtimes#request-body-size)).**
+
+**2. Make sure to have Node.js v.20.x.x installed (see github [issue](https://github.com/colinhacks/zod/issues/387#issuecomment-1774603011)).**
+
 To run this project, clone this repository
 
 ```bash
@@ -77,8 +84,6 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 To use this project, you can read [How To Use](http://localhost:3000/how-to-use).
-
-**NOTE: This project must be run on localhost for better experience because free hosting service such as Vercel limits 4.5 MB payload for serverless functions.**
 
 ## Usage
 
