@@ -6,7 +6,7 @@ export const SearchByUploadFormSchema = z.object({
     .custom<File>((input) => input instanceof File, "Please select query image")
     .refine(
       (file) => allowedImagesTypes.includes(file!.type),
-      "Only these types are allowed .jpg, .jpeg, and .png"
+      "Only these types are allowed .jpg, .jpeg, .png, and .webp"
     ),
   isTexture: z.boolean(),
   imageDataSet: z
@@ -19,7 +19,7 @@ export const SearchByUploadFormSchema = z.object({
         Array.from(files).every((file) =>
           allowedImagesTypes.includes(file!.type)
         ),
-      "Only these types are allowed .jpg, .jpeg, and .png"
+      "Only these types are allowed .jpg, .jpeg, .png, and .webp"
     ),
 });
 
@@ -29,7 +29,7 @@ export const SearchByUploadHttpSchema = z.object({
     .custom<File>((input) => input instanceof File, "Please select query image")
     .refine(
       (file) => allowedImagesTypes.includes(file!.type),
-      "Only these types are allowed .jpg, .jpeg, and .png"
+      "Only these types are allowed .jpg, .jpeg, .png, and .webp"
     ),
   isTexture: z.boolean(),
   imageDataSet: z
@@ -40,7 +40,7 @@ export const SearchByUploadHttpSchema = z.object({
     )
     .refine(
       (files) => files.every((file) => allowedImagesTypes.includes(file!.type)),
-      "Only these types are allowed .jpg, .jpeg, and .png"
+      "Only these types are allowed .jpg, .jpeg, .png, and .webp"
     ),
 });
 
@@ -49,7 +49,7 @@ export const SearchByScrapeFormSchema = z.object({
     .custom<File>((input) => input instanceof File, "Please select query image")
     .refine(
       (file) => allowedImagesTypes.includes(file!.type),
-      "Only these types are allowed .jpg, .jpeg, and .png"
+      "Only these types are allowed .jpg, .jpeg, .png, and .webp"
     ),
   isTexture: z.boolean(),
   scrapeUrl: z

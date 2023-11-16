@@ -3,6 +3,7 @@ import { SearchByScrapeFormSchema } from "@/lib/zod";
 import { JSDOM } from "jsdom";
 import { convertFileToBuffer, solveCBIR } from "@/lib/cbir";
 import { SuccessSearchByScrapeResponse } from "@/types/api";
+import { allowedImagesTypes } from "@/lib/constants";
 
 export const POST = async (req: NextRequest) => {
   // Get data
@@ -70,15 +71,27 @@ export const POST = async (req: NextRequest) => {
       return {
         imageBuffer,
         imageSrc,
+        contentType,
       };
     })
   );
 
+  // Filter only valid image types to be processed
+  // Note that zod only validates input query image and dataset url source,
+  // but not the images type itself
+  const filteredProcessedImages = processedImages.filter((image) =>
+    allowedImagesTypes.includes(image.contentType)
+  );
+
   // Get array of image buffers
-  const imageDataSetBuffers = processedImages.map((image) => image.imageBuffer);
+  const imageDataSetBuffers = filteredProcessedImages.map(
+    (image) => image.imageBuffer
+  );
 
   // Get image src
-  const imageDataSetSrcs = processedImages.map((image) => image.imageSrc);
+  const imageDataSetSrcs = filteredProcessedImages.map(
+    (image) => image.imageSrc
+  );
 
   const CBIRResult = await solveCBIR(
     imageInputBuffer,
