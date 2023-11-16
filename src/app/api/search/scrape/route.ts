@@ -44,14 +44,9 @@ export const POST = async (req: NextRequest) => {
   const document = dom.window.document;
   const imageElements = Array.from(document.querySelectorAll("img"));
   const imageUrls = imageElements.map((element) => {
-    const rawUrl = element.getAttribute("src");
-    if (rawUrl?.startsWith("https://")) {
-      // Absolute url, already contains https://
-      return rawUrl;
-    } else {
-      // Relative url, need to add scrapeUrl
-      return `${scrapeUrl}${rawUrl}`;
-    }
+    const rawUrl = element.getAttribute("src") + "";
+    const url = new URL(rawUrl, scrapeUrl).href;
+    return url;
   });
 
   // Convert image input to buffer
