@@ -75,13 +75,28 @@ Install node modules (especially for first time using)
 npm install
 ```
 
+Build the project by running
+
+```bash
+npm run build
+```
+
 Start the project by running
 
 ```bash
-npm run dev
+npm run start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+OR you can also add `--turbo` argument to use turborepo. For example,
+```bash
+npm run build --turbo
+```
+and
+```bash
+npm run start --turbo
+```
 
 To use this project, you can read [How To Use](http://localhost:3000/how-to-use).
 
