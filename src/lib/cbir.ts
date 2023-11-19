@@ -90,10 +90,10 @@ export const solveCBIRColor = async (
 ): Promise<CBIRCalculationResult> => {
   // Convert input image (file) to hsv
   const inputImageData = await convertBufferToHSVMatrix(imageQuery);
-
+  console.log(inputImageData);
   // Get feature vector
   const inputImage16FeatureVector = getColor16FeatureVector(inputImageData);
-
+  console.log(inputImage16FeatureVector);
   // Get weighted block
   // Blok 6, 7, 10, 11 memiliki bobot 2
   // Blok lainnya memiliki bobot 1
