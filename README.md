@@ -75,7 +75,7 @@ Install node modules (especially for first time using)
 npm install
 ```
 
-Build the project by running
+Build the project by running (note that building the project is much smoother and faster than running `npm run dev`)
 
 ```bash
 npm run build
